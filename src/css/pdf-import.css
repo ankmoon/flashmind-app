@@ -1,0 +1,485 @@
+/* ==========================================================
+   pdf-import.css — Universal Data Import Modal Styles
+   FlashMind App  (Excel · CSV · PDF)
+   ========================================================== */
+
+/* ── OVERLAY / MODAL ──────────────────────────────────────── */
+.pdf-import-modal {
+  width: min(820px, 95vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pdf-import-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px 24px;
+}
+
+/* ── STEPS ───────────────────────────────────────────────── */
+.pdf-step { display: flex; flex-direction: column; gap: 16px; }
+.pdf-step.hidden { display: none !important; }
+
+/* ── DROP ZONE ───────────────────────────────────────────── */
+.pdf-drop-zone {
+  border: 2px dashed var(--border-subtle);
+  border-radius: 16px;
+  padding: 40px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.pdf-drop-zone:hover,
+.pdf-drop-zone.drag-over {
+  border-color: var(--accent);
+  background: rgba(124, 92, 252, 0.08);
+}
+
+.pdf-drop-zone.drag-over { border-style: solid; }
+
+.pdf-drop-icon { font-size: 48px; line-height: 1; }
+.pdf-drop-title { font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 0; }
+.pdf-drop-sub   { font-size: 13px; color: var(--text-muted); margin: 0; }
+.pdf-drop-hint  { font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.6; }
+
+/* ── FORMAT ROW ──────────────────────────────────────────── */
+.pdf-format-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border-radius: 10px;
+}
+
+.pdf-format-label { font-size: 13px; font-weight: 500; color: var(--text-muted); white-space: nowrap; }
+
+/* ── PROCESSING ──────────────────────────────────────────── */
+.pdf-processing-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  min-height: 240px;
+  text-align: center;
+}
+
+.pdf-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(124, 92, 252, 0.2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: pdf-spin 0.8s linear infinite;
+}
+
+@keyframes pdf-spin { to { transform: rotate(360deg); } }
+
+.pdf-progress-track {
+  width: 280px;
+  height: 6px;
+  background: var(--bg-secondary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.pdf-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #a78bfa);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+/* ── PREVIEW HEADER ──────────────────────────────────────── */
+.pdf-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.pdf-stats-row {
+  display: flex;
+  gap: 16px;
+}
+
+.pdf-stat {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.pdf-stat strong {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.pdf-preview-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── COLUMN MAPPING ──────────────────────────────────────── */
+.pdf-col-map {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg-secondary);
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+
+.pdf-col-map label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.pdf-col-map .form-select {
+  flex: 1;
+  min-width: 130px;
+  max-width: 180px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+/* ── PREVIEW TABLE ───────────────────────────────────────── */
+.pdf-table-wrap {
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+}
+
+.pdf-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.pdf-preview-table thead {
+  position: sticky;
+  top: 0;
+  background: var(--bg-tertiary);
+  z-index: 1;
+}
+
+.pdf-preview-table th,
+.pdf-preview-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.pdf-preview-table th {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.pdf-preview-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+.pdf-preview-table tbody tr:last-child td { border-bottom: none; }
+
+/* first col = kanji = highlight */
+.pdf-preview-table td:nth-child(2) {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent-light, #a78bfa);
+  min-width: 60px;
+}
+
+/* reading col */
+.pdf-preview-table td:nth-child(3) {
+  color: var(--text-secondary);
+  min-width: 120px;
+}
+
+/* editable cells */
+.pdf-cell[contenteditable] {
+  outline: none;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+.pdf-cell[contenteditable]:focus {
+  background: rgba(124, 92, 252, 0.12);
+  outline: 1px solid var(--accent);
+}
+
+/* ── IMPORT FOOTER ───────────────────────────────────────── */
+.pdf-import-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.pdf-deck-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pdf-deck-row label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.pdf-deck-row .form-select {
+  flex: 1;
+  min-width: 180px;
+}
+
+#pdf-import-btn {
+  align-self: flex-end;
+  padding: 12px 28px;
+  font-size: 15px;
+}
+
+#pdf-import-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── DONE SCREEN ─────────────────────────────────────────── */
+.pdf-done-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+  text-align: center;
+  gap: 14px;
+}
+
+.pdf-done-icon {
+  font-size: 56px;
+  animation: pdf-bounce 0.6s ease;
+}
+
+@keyframes pdf-bounce {
+  0%   { transform: scale(0.5); opacity: 0; }
+  70%  { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.pdf-done-wrap h3 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+  background: linear-gradient(135deg, var(--accent), #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.pdf-done-wrap p {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ── FORMAT BADGES ───────────────────────────────────────── */
+.imp-format-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.imp-badge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.imp-badge.excel { background: rgba(33, 115, 70, 0.2); color: #4ade80; border: 1px solid rgba(33, 115, 70, 0.4); }
+.imp-badge.csv   { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+.imp-badge.pdf   { background: rgba(239, 68, 68, 0.2);  color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+
+/* ── TIPS SECTION ────────────────────────────────────────── */
+.imp-tips {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 16px 20px;
+  border: 1px solid var(--border-subtle);
+}
+
+.imp-tips h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0 0 10px;
+}
+
+.imp-tip-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.imp-tip-table th {
+  padding: 6px 10px;
+  background: rgba(124, 92, 252, 0.1);
+  color: var(--accent);
+  font-weight: 600;
+  text-align: left;
+  border-radius: 4px;
+}
+
+.imp-tip-table td {
+  padding: 5px 10px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.imp-tip-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 8px 0 0;
+}
+
+/* ── MAPPING HEADER ──────────────────────────────────────── */
+.imp-mapping-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* ── COLUMN MAPPER ───────────────────────────────────────── */
+.imp-col-mapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+}
+
+.imp-col-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.imp-col-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 160px;
+}
+
+.imp-col-row .form-select {
+  flex: 1;
+  min-width: 130px;
+  max-width: 200px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.imp-combine-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* ── PREVIEW LABEL ───────────────────────────────────────── */
+.imp-preview-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ── MAPPING ACTIONS ─────────────────────────────────────── */
+.imp-mapping-actions {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* Disable-state for import button */
+#imp-do-import-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── INLINE NEW DECK FORM ─────────────────────────────────── */
+.imp-new-deck-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(124, 92, 252, 0.08);
+  border: 1px solid rgba(124, 92, 252, 0.3);
+  border-radius: 10px;
+  animation: imp-slide-in 0.2s ease;
+}
+
+.imp-new-deck-form .form-input {
+  flex: 1;
+  padding: 7px 12px;
+  font-size: 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.imp-new-deck-form .form-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.15);
+}
+
+@keyframes imp-slide-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── NO-DECK WARNING ─────────────────────────────────────── */
+.imp-no-deck-warn {
+  padding: 10px 14px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #fbbf24;
+}
+
+.imp-new-deck-form.hidden,
+.imp-no-deck-warn.hidden { display: none !important; }

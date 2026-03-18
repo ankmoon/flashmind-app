@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="FlashMind — Ứng dụng flashcard cao cấp, local-first, kết hợp Quizlet + Anki + Obsidian" />
+  <title>FlashMind — Premium Flashcard App</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="src/css/main.css" />
+  <link rel="stylesheet" href="src/css/sidebar.css" />
+  <link rel="stylesheet" href="src/css/cards.css" />
+  <link rel="stylesheet" href="src/css/study.css" />
+  <link rel="stylesheet" href="src/css/pdf-import.css" />
+  <link rel="stylesheet" href="src/css/quiz.css" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#7c5cfc" />
+</head>
+<body>
+
+  <!-- ═══════════════════ LOADING SCREEN ═══════════════════ -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="loading-content">
+      <div class="loading-logo">
+        <div class="logo-icon">⚡</div>
+        <span class="logo-text">FlashMind</span>
+      </div>
+      <div class="loading-bar-wrap">
+        <div class="loading-bar" id="loading-bar"></div>
+      </div>
+      <p class="loading-status" id="loading-status">Khởi động engine...</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ WELCOME SCREEN ═══════════════════ -->
+  <div id="welcome-screen" class="welcome-screen hidden">
+    <div class="welcome-bg">
+      <div class="welcome-orb orb-1"></div>
+      <div class="welcome-orb orb-2"></div>
+      <div class="welcome-orb orb-3"></div>
+    </div>
+    <div class="welcome-content">
+      <div class="welcome-logo">
+        <div class="logo-icon-lg">⚡</div>
+        <h1 class="welcome-title">FlashMind</h1>
+        <p class="welcome-tagline">Học thông minh hơn, nhớ lâu hơn</p>
+        <p class="welcome-sub">Local-first · Không cần internet · Không mất dữ liệu</p>
+      </div>
+      <div class="welcome-actions">
+        <button id="btn-new-file" class="btn btn-primary btn-lg">
+          <span class="btn-icon">✨</span>
+          Tạo bộ thẻ mới
+        </button>
+        <button id="btn-open-file" class="btn btn-secondary btn-lg">
+          <span class="btn-icon">📂</span>
+          Mở file .flashcard
+        </button>
+      </div>
+      <div class="welcome-features">
+        <div class="feature-chip"><span>🧠</span> SM-2 SRS</div>
+        <div class="feature-chip"><span>💾</span> Lưu cục bộ</div>
+        <div class="feature-chip"><span>📝</span> Markdown</div>
+        <div class="feature-chip"><span>📊</span> Thống kê</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ MAIN APP ═══════════════════ -->
+  <div id="app" class="app-container hidden">
+
+    <!-- HEADER -->
+    <header class="app-header" id="app-header">
+      <div class="header-left">
+        <button id="btn-toggle-sidebar" class="icon-btn" title="Toggle Sidebar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <div class="logo-small">
+          <span class="logo-icon-sm">⚡</span>
+          <span class="logo-text-sm">FlashMind</span>
+        </div>
+        <div class="file-indicator" id="file-indicator">
+          <span class="file-name" id="header-file-name">Untitled.flashcard</span>
+          <span class="file-dirty hidden" id="file-dirty-dot" title="Chưa lưu">●</span>
+        </div>
+      </div>
+      <div class="header-center">
+        <div class="search-bar" id="search-bar">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input type="text" id="search-input" class="search-input" placeholder="Tìm thẻ, deck..." />
+          <kbd class="search-kbd">Ctrl+F</kbd>
+        </div>
+      </div>
+      <div class="header-right">
+        <button id="btn-save" class="btn btn-sm btn-ghost" title="Lưu (Ctrl+S)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/>
+          </svg>
+          Lưu
+        </button>
+        <button id="btn-new-file-header" class="btn btn-sm btn-ghost" title="Tạo mới">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14,2 14,8 20,8"/><line x1="12" y1="18" x2="12" y2="12"/>
+            <line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+          Mới
+        </button>
+        <button id="btn-open-file-header" class="btn btn-sm btn-ghost" title="Mở file">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          </svg>
+          Mở
+        </button>
+        <button id="btn-import-pdf" class="btn btn-sm btn-ghost" title="Import Excel / CSV / PDF">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14,2 14,8 20,8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+          Import
+        </button>
+        <div class="header-divider"></div>
+        <div class="streak-badge" id="header-streak">
+          <span>🔥</span>
+          <span id="streak-count">0</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- BODY -->
+    <div class="app-body">
+
+      <!-- SIDEBAR -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-inner">
+          <!-- Sidebar Header -->
+          <div class="sidebar-header">
+            <span class="sidebar-section-title">📚 Bộ thẻ của tôi</span>
+            <button id="btn-new-deck-root" class="icon-btn icon-btn-sm" title="Tạo deck mới">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Deck Tree -->
+          <div class="deck-tree" id="deck-tree">
+            <!-- Populated by Sidebar.js -->
+            <div class="sidebar-empty-state" id="sidebar-empty">
+              <div class="empty-icon">📭</div>
+              <p>Chưa có bộ thẻ nào</p>
+              <button class="btn btn-sm btn-primary" id="btn-create-first-deck">
+                Tạo bộ thẻ đầu tiên
+              </button>
+            </div>
+          </div>
+
+          <!-- Sidebar Footer -->
+          <div class="sidebar-footer">
+            <button id="btn-stats-nav" class="sidebar-nav-item" data-view="stats">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+                <line x1="6" y1="20" x2="6" y2="14"/>
+              </svg>
+              Thống kê
+            </button>
+            <button id="btn-settings-nav" class="sidebar-nav-item" data-view="settings">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.07 4.93A10 10 0 0 0 4.93 19.07M4.93 4.93a10 10 0 0 0 14.14 14.14"/>
+              </svg>
+              Cài đặt
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="main-content" id="main-content">
+
+        <!-- Deck Header -->
+        <div class="content-header" id="content-header">
+          <div class="content-header-left">
+            <div class="deck-icon-display" id="deck-icon-display">📚</div>
+            <div class="deck-info">
+              <h2 class="deck-title" id="deck-title">Chọn một bộ thẻ</h2>
+              <p class="deck-meta" id="deck-meta">Chưa có gì ở đây</p>
+            </div>
+          </div>
+          <div class="content-header-right" id="content-header-actions">
+            <div class="view-toggle" id="view-toggle">
+              <button class="view-btn active" id="view-grid" data-view="grid" title="Grid">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                  <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+                </svg>
+              </button>
+              <button class="view-btn" id="view-list" data-view="list" title="List">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+                  <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
+                  <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <button id="btn-study-now" class="btn btn-primary btn-sm" style="display:none">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5,3 19,12 5,21"/>
+              </svg>
+              Học ngay
+            </button>
+            <button id="btn-add-card" class="btn btn-accent btn-sm" style="display:none">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Thêm thẻ
+            </button>
+          </div>
+        </div>
+
+        <!-- Due Today Banner -->
+        <div class="due-banner hidden" id="due-banner">
+          <span class="due-banner-icon">📅</span>
+          <span class="due-banner-text" id="due-banner-text">0 thẻ cần ôn hôm nay</span>
+          <button class="btn btn-sm btn-primary" id="btn-study-due">Ôn tập ngay</button>
+        </div>
+
+        <!-- Card Grid / List -->
+        <div id="card-grid" class="card-grid">
+          <!-- Welcome / Empty State -->
+          <div class="content-empty-state" id="content-empty-state">
+            <div class="empty-state-icon">🃏</div>
+            <h3>Chọn một bộ thẻ</h3>
+            <p>Chọn deck từ sidebar để xem thẻ, hoặc tạo deck mới.</p>
+          </div>
+        </div>
+
+        <!-- Stats View -->
+        <div id="stats-view" class="stats-view hidden">
+          <h2 class="view-title">📊 Thống kê học tập</h2>
+
+          <!-- Summary Cards -->
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-num" id="stat-total-cards">0</div><div class="stat-label">Tổng thẻ</div></div>
+            <div class="stat-card"><div class="stat-num" id="stat-due-today">0</div><div class="stat-label">Cần ôn hôm nay</div></div>
+            <div class="stat-card"><div class="stat-num" id="stat-mastered">0</div><div class="stat-label">Đã thuộc (≥21 ngày)</div></div>
+            <div class="stat-card"><div class="stat-num" id="stat-streak">0</div><div class="stat-label">🔥 Streak</div></div>
+          </div>
+
+          <!-- Charts Row -->
+          <div class="charts-row">
+            <div class="chart-card">
+              <div class="chart-card-title">📅 Hoạt động 7 ngày</div>
+              <div class="chart-wrap" style="height:220px">
+                <canvas id="chart-weekly"></canvas>
+              </div>
+            </div>
+            <div class="chart-card chart-card-sm">
+              <div class="chart-card-title">🎯 Độ chính xác (7 ngày)</div>
+              <div class="chart-wrap" style="height:220px">
+                <canvas id="chart-accuracy"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- 30-day Heatmap -->
+          <div class="heatmap-card">
+            <div class="chart-card-title">🗓 Lịch học 30 ngày</div>
+            <div class="heatmap-grid" id="heatmap-grid"></div>
+            <div class="heatmap-legend">
+              <span>Ít</span>
+              <div class="heatmap-cell level-0"></div>
+              <div class="heatmap-cell level-1"></div>
+              <div class="heatmap-cell level-2"></div>
+              <div class="heatmap-cell level-3"></div>
+              <div class="heatmap-cell level-4"></div>
+              <span>Nhiều</span>
+            </div>
+          </div>
+
+          <!-- Deck Progress Table -->
+          <div class="deck-table-card">
+            <div class="chart-card-title">📚 Tiến độ từng Deck</div>
+            <table class="deck-progress-table">
+              <thead>
+                <tr>
+                  <th>Deck</th>
+                  <th>Tổng</th>
+                  <th>Cần ôn</th>
+                  <th>Mới</th>
+                  <th>Tiến độ</th>
+                </tr>
+              </thead>
+              <tbody id="deck-progress-body">
+                <tr><td colspan="5" style="text-align:center;color:var(--text-subtle)">Đang tải...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="chart-placeholder" style="display:none"></div>
+        </div>
+
+      </main>
+    </div>
+
+    <!-- STATUS BAR -->
+    <footer class="status-bar" id="status-bar">
+      <div class="status-left">
+        <span class="status-item" id="status-file">📄 Untitled.flashcard</span>
+        <span class="status-sep">·</span>
+        <span class="status-item" id="status-deck-count">0 decks</span>
+        <span class="status-sep">·</span>
+        <span class="status-item" id="status-card-count">0 thẻ</span>
+      </div>
+      <div class="status-right">
+        <span class="status-item" id="status-due">📅 0 thẻ hôm nay</span>
+        <span class="status-sep">·</span>
+        <span class="status-item status-ready" id="status-engine">⚡ Ready</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ═══════════════════ MODALS ═══════════════════ -->
+
+  <!-- Deck Modal -->
+  <div class="modal-overlay hidden" id="modal-deck">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-deck-title">Tạo bộ thẻ mới</h3>
+        <button class="modal-close" data-close="modal-deck">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="deck-edit-id" value="" />
+        <div class="form-group">
+          <label class="form-label">Tên bộ thẻ *</label>
+          <input type="text" id="deck-name-input" class="form-input" placeholder="VD: IELTS Vocabulary, Toán Đại số..." maxlength="100" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Màu sắc</label>
+            <div class="color-picker" id="deck-color-picker">
+              <button class="color-option active" data-color="#7c5cfc" style="background:#7c5cfc" title="Tím"></button>
+              <button class="color-option" data-color="#2563eb" style="background:#2563eb" title="Xanh dương"></button>
+              <button class="color-option" data-color="#10b981" style="background:#10b981" title="Xanh lá"></button>
+              <button class="color-option" data-color="#f59e0b" style="background:#f59e0b" title="Vàng"></button>
+              <button class="color-option" data-color="#ef4444" style="background:#ef4444" title="Đỏ"></button>
+              <button class="color-option" data-color="#06b6d4" style="background:#06b6d4" title="Cyan"></button>
+              <button class="color-option" data-color="#ec4899" style="background:#ec4899" title="Hồng"></button>
+              <button class="color-option" data-color="#8b5cf6" style="background:#8b5cf6" title="Indigo"></button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Icon</label>
+            <div class="emoji-picker" id="deck-emoji-picker">
+              <button class="emoji-option active" data-emoji="📚">📚</button>
+              <button class="emoji-option" data-emoji="🎯">🎯</button>
+              <button class="emoji-option" data-emoji="🧠">🧠</button>
+              <button class="emoji-option" data-emoji="🔬">🔬</button>
+              <button class="emoji-option" data-emoji="🌍">🌍</button>
+              <button class="emoji-option" data-emoji="🎨">🎨</button>
+              <button class="emoji-option" data-emoji="💻">💻</button>
+              <button class="emoji-option" data-emoji="🏆">🏆</button>
+              <button class="emoji-option" data-emoji="📖">📖</button>
+              <button class="emoji-option" data-emoji="🚀">🚀</button>
+              <button class="emoji-option" data-emoji="⚡">⚡</button>
+              <button class="emoji-option" data-emoji="🎵">🎵</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-group" id="parent-deck-group">
+          <label class="form-label">Deck cha (tùy chọn)</label>
+          <select id="deck-parent-select" class="form-select">
+            <option value="">— Không có (Root) —</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" data-close="modal-deck">Hủy</button>
+        <button class="btn btn-primary" id="btn-save-deck">Tạo bộ thẻ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card Editor Modal -->
+  <div class="modal-overlay hidden" id="modal-card">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-card-title">Thêm thẻ mới</h3>
+        <div class="modal-header-actions">
+          <div class="card-type-tabs">
+            <button class="tab-btn active" data-type="basic">📄 Cơ bản</button>
+            <button class="tab-btn" data-type="cloze">✏️ Điền trống</button>
+          </div>
+          <button class="modal-close" data-close="modal-card">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="modal-body editor-layout">
+        <input type="hidden" id="card-edit-id" value="" />
+        <div class="editor-col">
+          <div class="editor-panel">
+            <div class="editor-panel-header">
+              <span class="editor-panel-label">Mặt trước</span>
+              <span class="editor-hint">Markdown được hỗ trợ</span>
+            </div>
+            <textarea id="card-front-input" class="editor-textarea" placeholder="Nhập câu hỏi hoặc từ khóa...
+Hỗ trợ **Markdown**, _italic_, `code`"></textarea>
+          </div>
+          <div class="editor-panel">
+            <div class="editor-panel-header">
+              <span class="editor-panel-label">Mặt sau</span>
+              <span class="editor-hint">Đáp án / Nội dung</span>
+            </div>
+            <textarea id="card-back-input" class="editor-textarea" placeholder="Nhập đáp án...
+Hỗ trợ **Markdown**, _italic_, `code`, [links](url)"></textarea>
+          </div>
+          <div class="form-group form-group-inline">
+            <label class="form-label">Tags</label>
+            <input type="text" id="card-tags-input" class="form-input" placeholder="tag1, tag2, tag3" />
+          </div>
+        </div>
+        <div class="editor-col preview-col">
+          <div class="editor-panel preview-panel">
+            <div class="editor-panel-header">
+              <span class="editor-panel-label">👁 Preview</span>
+            </div>
+            <div class="preview-card-container">
+              <div class="preview-card">
+                <div class="preview-section">
+                  <div class="preview-label">Mặt trước</div>
+                  <div id="preview-front" class="preview-content markdown-body">
+                    <p class="preview-placeholder">Nhập nội dung để xem trước...</p>
+                  </div>
+                </div>
+                <div class="preview-divider"></div>
+                <div class="preview-section">
+                  <div class="preview-label">Mặt sau</div>
+                  <div id="preview-back" class="preview-content markdown-body">
+                    <p class="preview-placeholder">Nhập nội dung để xem trước...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" data-close="modal-card">Hủy</button>
+        <button class="btn btn-secondary" id="btn-save-card-next">Lưu & Tiếp theo</button>
+        <button class="btn btn-primary" id="btn-save-card">Lưu thẻ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Delete Modal -->
+  <div class="modal-overlay hidden" id="modal-confirm">
+    <div class="modal modal-xs">
+      <div class="modal-header">
+        <h3 class="modal-title">Xác nhận xóa</h3>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-message">Bạn có chắc muốn xóa không?</p>
+        <p class="text-muted text-sm">Hành động này không thể hoàn tác.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" data-close="modal-confirm">Hủy</button>
+        <button class="btn btn-danger" id="btn-confirm-delete">🗑 Xóa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- ═══════════════════ STUDY MODE OVERLAY ═══════════════════ -->
+  <div id="study-overlay" class="study-overlay hidden">
+
+    <!-- Study Header -->
+    <div class="study-header">
+      <button id="study-close-btn" class="study-close-btn" title="Thoát (Esc)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+        Thoát
+      </button>
+      <div class="study-progress-bar">
+        <div class="study-progress-track">
+          <div class="study-progress-fill" id="study-progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+      <span class="study-counter" id="study-counter">1 / 0</span>
+      <div class="study-header-stats">
+        <div class="study-stat" id="study-stat-again"><span>😰</span><span class="stat-num">0</span></div>
+        <div class="study-stat" id="study-stat-hard"><span>😐</span><span class="stat-num">0</span></div>
+        <div class="study-stat" id="study-stat-good"><span>😊</span><span class="stat-num">0</span></div>
+        <div class="study-stat" id="study-stat-easy"><span>🎯</span><span class="stat-num">0</span></div>
+      </div>
+      <div class="study-deck-name" id="study-deck-name">Học tập</div>
+    </div>
+
+    <!-- Study Main: Card + Finish Screen -->
+    <div class="study-main" id="study-main">
+
+      <!-- Flashcard 3D -->
+      <div class="study-card-wrap" id="study-card-wrap">
+        <div class="study-card-inner" id="study-card-inner">
+          <div class="study-card-face study-card-front">
+            <div class="study-card-label">Câu hỏi</div>
+            <div class="study-card-content markdown-body" id="study-front-content"></div>
+          </div>
+          <div class="study-card-face study-card-back">
+            <div class="study-card-label">Đáp án</div>
+            <div class="study-card-content markdown-body" id="study-back-content"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Finish Screen -->
+      <div class="study-finish hidden" id="study-finish">
+        <div class="study-finish-icon">🎉</div>
+        <h2 class="study-finish-title">Hoàn thành!</h2>
+        <p class="study-finish-sub" id="study-finish-sub">Bạn đã ôn xong hôm nay</p>
+        <div class="study-finish-stats" id="study-finish-stats"></div>
+        <div class="study-finish-actions">
+          <button class="btn btn-ghost" id="study-continue">Học tiếp</button>
+          <button class="btn btn-primary" id="study-finish-close">✓ Về trang chủ</button>
+        </div>
+      </div>
+
+    </div><!-- /study-main -->
+
+    <!-- Hint text -->
+    <div class="study-hint" id="study-hint">Nhấn Space hoặc click thẻ để xem đáp án</div>
+
+    <!-- Show Answer Button -->
+    <div class="study-show-wrap" id="study-show-wrap">
+      <button class="btn btn-primary btn-lg" id="btn-show-answer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+        Xem đáp án
+        <kbd>Space</kbd>
+      </button>
+    </div>
+
+    <!-- Rating Buttons -->
+    <div class="study-ratings hidden" id="study-ratings">
+      <button class="rating-btn rating-again" data-rating="1">
+        <span class="rating-emoji">😰</span>
+        <span class="rating-label">Quên</span>
+        <span class="rating-interval" id="interval-1">—</span>
+      </button>
+      <button class="rating-btn rating-hard" data-rating="2">
+        <span class="rating-emoji">😐</span>
+        <span class="rating-label">Khó</span>
+        <span class="rating-interval" id="interval-2">—</span>
+      </button>
+      <button class="rating-btn rating-good" data-rating="3">
+        <span class="rating-emoji">😊</span>
+        <span class="rating-label">Nhớ</span>
+        <span class="rating-interval" id="interval-3">—</span>
+      </button>
+      <button class="rating-btn rating-easy" data-rating="4">
+        <span class="rating-emoji">🎯</span>
+        <span class="rating-label">Dễ</span>
+        <span class="rating-interval" id="interval-4">—</span>
+      </button>
+    </div>
+
+    <!-- Keyboard shortcuts hint -->
+    <div class="study-kbd-hint">
+      <kbd>Space</kbd> Lật thẻ &nbsp;|&nbsp;
+      <kbd>1</kbd> Quên &nbsp;<kbd>2</kbd> Khó &nbsp;<kbd>3</kbd> Nhớ &nbsp;<kbd>4</kbd> Dễ &nbsp;|&nbsp;
+      <kbd>Esc</kbd> Thoát
+    </div>
+
+  </div><!-- /study-overlay -->
+
+  <!-- ═══════════════════ VENDORS (CDN) ═══════════════════ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- App Entry Point -->
+  <script type="module" src="src/js/app.js"></script>
+</body>
+</html>
