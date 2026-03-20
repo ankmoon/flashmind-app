@@ -14,9 +14,9 @@ import { cardManager } from '../modules/cardManager.js';
 import { bus, toast } from '../utils.js';
 
 const MODES = {
-    review: { icon: '📖', label: 'Ôn tập',   desc: 'Theo SRS, ưu tiên thẻ cần ôn' },
-    random: { icon: '🔀', label: 'Random',   desc: 'Xáo trộn ngẫu nhiên' },
-    quiz:   { icon: '📝', label: 'Kiểm tra', desc: 'Trắc nghiệm 4 đáp án' },
+    review: { icon: '📖', label: 'Ôn tập thông minh', desc: 'Ôn đúng lúc, đúng thẻ — nhớ lâu hơn' },
+    random: { icon: '🔀', label: 'Ngẫu nhiên',       desc: 'Xáo trộn, không tính lịch học' },
+    quiz:   { icon: '📝', label: 'Kiểm tra',          desc: 'Trắc nghiệm 4 đáp án' },
 };
 
 const LEVELS = [

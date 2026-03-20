@@ -43,6 +43,33 @@
 }
 .study-close-btn:hover { background: var(--danger-muted); border-color: var(--danger); color: var(--danger); }
 
+/* [F7] Header left group */
+.study-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+/* [F7] Back button */
+.study-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--t-fast);
+  white-space: nowrap;
+  animation: fadeIn 0.2s ease;
+}
+.study-back-btn:hover { background: var(--primary-muted); border-color: var(--primary); color: var(--primary); }
+
 .study-progress-bar {
   flex: 1;
   min-width: 120px;

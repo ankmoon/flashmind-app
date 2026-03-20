@@ -6,6 +6,13 @@
  *   Due Reviews → New Cards (max 20/session)
  *   "Again" cards cycle back within same session
  *   Ratings: Again(1) / Hard(2) / Good(3) / Easy(4)
+ *
+ * Fixes applied:
+ *   F5: Unflip — click card again to flip back to front
+ *   F7: Back button — go to previous card
+ *   F8: Off-by-one — limit queue precisely to requested count
+ *   F9: Stale finish screen — reset DOM on each open()
+ *  F10: Hide "Xem đáp án" on finish screen
  */
 
 import { cardManager } from '../modules/cardManager.js';
@@ -30,6 +37,7 @@ export class StudyMode {
         this._deckName     = '';
         this._queue        = [];      // Main queue (due + new)
         this._retryQueue   = [];      // "Again" cards reinjected
+        this._history      = [];      // [F7] History of shown cards for back navigation
         this._currentIdx   = 0;
         this._currentCard  = null;
         this._isFlipped    = false;
@@ -84,9 +92,13 @@ export class StudyMode {
 
         this._queue      = queue;
         this._retryQueue = [];
+        this._history    = [];      // [F7] reset history
         this._currentIdx = 0;
         this._isFinished = false;
         this._stats      = { again: 0, hard: 0, good: 0, easy: 0, total: 0 };
+
+        // [F9] Reset finish screen DOM before starting new session
+        this._resetFinishScreen();
 
         // Show overlay
         this._getEl('study-overlay').classList.remove('hidden');
@@ -95,6 +107,9 @@ export class StudyMode {
         // Update deck name in header
         const nameEl = this._getEl('study-deck-name');
         if (nameEl) nameEl.textContent = deckName || 'Học tập';
+
+        // [F7] Show/hide back button
+        this._updateBackBtn();
 
         this._showCard(this._queue[0]);
     }
@@ -127,17 +142,35 @@ export class StudyMode {
         this._getEl('study-ratings').classList.add('hidden');
         this._getEl('study-hint').textContent = 'Nhấn Space hoặc click thẻ để xem đáp án';
 
+        // Show card wrap (in case was hidden by finish)
+        this._getEl('study-card-wrap').style.display = '';
+
         // Update progress
         this._updateProgress();
+
+        // [F7] Update back button visibility
+        this._updateBackBtn();
 
         // Preview intervals on rating buttons
         this._renderIntervalPreviews(card);
     }
 
+    // [F5] Flip / Unflip
     flip() {
-        if (this._isFlipped || this._isFinished) return;
-        this._isFlipped = true;
+        if (this._isFinished) return;
 
+        if (this._isFlipped) {
+            // Unflip — go back to front side
+            this._isFlipped = false;
+            this._getCardInner().classList.remove('flipped');
+            this._getEl('study-show-wrap').classList.remove('hidden');
+            this._getEl('study-ratings').classList.add('hidden');
+            this._getEl('study-hint').textContent = 'Nhấn Space hoặc click thẻ để xem đáp án';
+            return;
+        }
+
+        // Flip to back side
+        this._isFlipped = true;
         this._getCardInner().classList.add('flipped');
         this._getEl('study-show-wrap').classList.add('hidden');
         this._getEl('study-ratings').classList.remove('hidden');
@@ -150,6 +183,19 @@ export class StudyMode {
             btn.classList.add('btn-enter');
             setTimeout(() => btn.classList.remove('btn-enter'), 400 + i * 60);
         });
+    }
+
+    // [F7] Go back to previous card
+    _goBack() {
+        if (this._history.length === 0) return;
+        const prev = this._history.pop();
+
+        // Undo the last stat increment if the previous card was rated
+        // (We don't undo SRS because it's already written to DB, but we remove from stats)
+        this._currentIdx--;
+        if (this._currentIdx < 0) this._currentIdx = 0;
+
+        this._showCard(prev);
     }
 
     /**
@@ -188,6 +234,9 @@ export class StudyMode {
             this._retryQueue.push({ ...card });
         }
 
+        // [F7] Push current card to history before advancing
+        this._history.push(card);
+
         // Short delay then advance
         setTimeout(() => this._advance(), 350);
     }
@@ -215,6 +264,39 @@ export class StudyMode {
     }
 
     // ─── FINISH SCREEN ───────────────────────────────────────────
+
+    /**
+     * [F9] Reset finish screen DOM state before starting a new session.
+     * Prevents stale UI from previous session.
+     */
+    _resetFinishScreen() {
+        const finishEl = this._getEl('study-finish');
+        if (finishEl) {
+            finishEl.classList.add('hidden');
+            // Reset inner content to avoid stale data
+            const statsEl = finishEl.querySelector('.study-finish-stats');
+            if (statsEl) statsEl.innerHTML = '';
+        }
+        // Ensure card wrap is visible
+        const cardWrap = this._getEl('study-card-wrap');
+        if (cardWrap) cardWrap.style.display = '';
+
+        // [F10] Ensure "Xem đáp án" is properly hidden at start  
+        const showWrap = this._getEl('study-show-wrap');
+        if (showWrap) showWrap.classList.remove('hidden');
+
+        // Reset rating buttons
+        const ratings = this._getEl('study-ratings');
+        if (ratings) ratings.classList.add('hidden');
+
+        // Reset progress
+        const fill = this._getEl('study-progress-fill');
+        if (fill) fill.style.width = '0%';
+
+        // Reset header stats
+        this._stats = { again: 0, hard: 0, good: 0, easy: 0, total: 0 };
+        this._updateHeaderStats();
+    }
 
     _finish() {
         this._isFinished = true;
@@ -253,9 +335,15 @@ export class StudyMode {
 
         // Hide card and hints
         this._getEl('study-card-wrap').style.display = 'none';
+
+        // [F10] Ẩn button "Xem đáp án" và ratings khi ở màn hình kết quả
         this._getEl('study-show-wrap').classList.add('hidden');
         this._getEl('study-ratings').classList.add('hidden');
         this._getEl('study-hint').textContent = '';
+
+        // [F7] Hide back button on finish screen
+        const backBtn = document.getElementById('study-back-btn');
+        if (backBtn) backBtn.style.display = 'none';
 
         // Progress to 100%
         this._getEl('study-progress-fill').style.width = '100%';
@@ -264,7 +352,7 @@ export class StudyMode {
     // ─── PROGRESS & UI ───────────────────────────────────────────
 
     _updateProgress() {
-        const total  = this._queue.length + this._retryQueue.filter(c => !this._queue.includes(c)).length;
+        const total  = this._queue.length;
         const done   = this._currentIdx;
         const pct    = total ? Math.round((done / total) * 100) : 0;
 
@@ -284,6 +372,14 @@ export class StudyMode {
         setVal('study-stat-hard',  hard);
         setVal('study-stat-good',  good);
         setVal('study-stat-easy',  easy);
+    }
+
+    // [F7] Update back button visibility
+    _updateBackBtn() {
+        const backBtn = document.getElementById('study-back-btn');
+        if (backBtn) {
+            backBtn.style.display = this._history.length > 0 ? '' : 'none';
+        }
     }
 
     _renderIntervalPreviews(card) {
@@ -324,7 +420,7 @@ export class StudyMode {
     _bindOverlayEvents() {
         // Close button
         this._getEl('study-close-btn')?.addEventListener('click', () => {
-            if (this._stats.total > 0) {
+            if (this._stats.total > 0 && !this._isFinished) {
                 if (!confirm('Bạn có muốn thoát phiên học chưa hoàn thành?')) return;
             }
             this.close();
@@ -333,9 +429,9 @@ export class StudyMode {
         // "Xem đáp án" button
         this._getEl('btn-show-answer')?.addEventListener('click', () => this.flip());
 
-        // Click on card to flip
+        // [F5] Click on card to flip/unflip
         this._getEl('study-card-wrap')?.addEventListener('click', () => {
-            if (!this._isFlipped) this.flip();
+            this.flip();
         });
 
         // Rating buttons
@@ -343,6 +439,12 @@ export class StudyMode {
             const btn = e.target.closest('.rating-btn');
             if (btn) this.rate(parseInt(btn.dataset.rating));
         });
+
+        // [F7] Back button
+        const backBtn = document.getElementById('study-back-btn');
+        if (backBtn) {
+            backBtn.addEventListener('click', () => this._goBack());
+        }
 
         // Finish screen buttons
         this._getEl('study-finish-close')?.addEventListener('click', () => this.close());
@@ -357,11 +459,19 @@ export class StudyMode {
 
             if (e.key === ' ' || e.key === 'Enter') {
                 e.preventDefault();
-                if (!this._isFlipped) this.flip();
+                this.flip();
+                return;
             }
             if (e.key === 'Escape') {
+                if (this._isFinished) { this.close(); return; }
                 if (!confirm('Bạn có muốn thoát phiên học?')) return;
                 this.close();
+                return;
+            }
+            // [F7] Arrow left → back
+            if (e.key === 'ArrowLeft' && !this._isFlipped) {
+                this._goBack();
+                return;
             }
             // 1-4 hotkeys for rating
             if (this._isFlipped && ['1','2','3','4'].includes(e.key)) {

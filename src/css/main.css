@@ -95,6 +95,31 @@
   --t-bounce: 300ms cubic-bezier(0.34,1.56,0.64,1);
 }
 
+/* ─── LIGHT MODE THEME ─── */
+[data-theme="light"] {
+  --bg:           #f8f8fc;
+  --surface:      #ffffff;
+  --surface-2:    #f1f1f8;
+  --surface-3:    #e8e8f4;
+  --surface-4:    #dcdcee;
+  --border:       #d0d0e0;
+  --border-light: #b8b8cc;
+
+  --text:         #1a1a2e;
+  --text-muted:   #5c5c7a;
+  --text-subtle:  #9090a8;
+  --text-inverse: #f8f8fc;
+
+  --grad-card:      linear-gradient(145deg, #ffffff, #f4f4fa);
+
+  --shadow-xs:    0 1px 4px rgba(0,0,0,0.08);
+  --shadow-sm:    0 2px 8px rgba(0,0,0,0.10);
+  --shadow-md:    0 4px 16px rgba(0,0,0,0.12);
+  --shadow-lg:    0 8px 32px rgba(0,0,0,0.14);
+  --shadow-xl:    0 16px 48px rgba(0,0,0,0.18);
+  --shadow-card:  0 4px 20px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.05);
+}
+
 /* ─── RESET & BASE ─── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; scroll-behavior: smooth; }

@@ -71,6 +71,9 @@ class FlashMindApp {
             // Phase 4: Done
             this._setLoadingStatus('Sẵn sàng! ✨', 100);
 
+            // Apply saved theme (do this before showing UI)
+            this._initTheme();
+
             await this._sleep(400);
             this._showWelcomeScreen();
 
@@ -238,6 +241,27 @@ class FlashMindApp {
         requestAnimationFrame(() => this.statistics.render());
     }
 
+    // ─── THEME MANAGEMENT (F4) ────────────────────────────────────
+
+    _initTheme() {
+        const saved = localStorage.getItem('fm_theme') || 'dark';
+        this._applyTheme(saved);
+    }
+
+    _toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme') || 'dark';
+        const next    = current === 'dark' ? 'light' : 'dark';
+        this._applyTheme(next);
+        localStorage.setItem('fm_theme', next);
+        toast(next === 'light' ? '☀️ Chế độ sáng' : '🌙 Chế độ tối', 'info');
+    }
+
+    _applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        const icon = document.getElementById('theme-toggle-icon');
+        if (icon) icon.textContent = theme === 'light' ? '🌙' : '☀️';
+    }
+
     // ─── UNSAVED CONFIRMATION ─────────────────────────────────────
 
     _confirmUnsaved() {
@@ -260,6 +284,9 @@ class FlashMindApp {
         document.getElementById('btn-import-pdf')?.addEventListener('click', () => {
             this.pdfImport.open(this.sidebar.currentDeckId || null);
         });
+
+        // [F4] Theme toggle
+        document.getElementById('btn-theme-toggle')?.addEventListener('click', () => this._toggleTheme());
 
         // Sidebar toggle
         document.getElementById('btn-toggle-sidebar')?.addEventListener('click', () => {

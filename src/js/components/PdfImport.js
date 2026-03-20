@@ -215,6 +215,7 @@ class DataImportComponent {
                       <th>Front</th>
                       <th>Back</th>
                       <th>Tags</th>
+                      <th style="width:64px">Sửa/Xóa</th>
                     </tr>
                   </thead>
                   <tbody id="imp-confirm-tbody"></tbody>
@@ -303,6 +304,14 @@ class DataImportComponent {
         // Column selects → re-preview
         ['imp-sel-front','imp-sel-front2','imp-sel-back','imp-sel-back2','imp-sel-tags'].forEach(id => {
             $(id)?.addEventListener('change', () => this._renderPreview5());
+        });
+
+        // [F2] Delegate edit/delete on confirm table (attached once to document)
+        document.addEventListener('click', e => {
+            const editBtn = e.target.closest('.imp-edit-btn');
+            const delBtn  = e.target.closest('.imp-del-btn');
+            if (editBtn) this._handleEditRow(editBtn);
+            if (delBtn)  this._handleDelRow(delBtn);
         });
 
         // Navigation
@@ -613,11 +622,16 @@ class DataImportComponent {
             if (!front && !back) return;
 
             const tr = document.createElement('tr');
+            tr.dataset.idx = i;
             tr.innerHTML = `
                 <td><input type="checkbox" class="imp-row-chk" data-idx="${i}" checked></td>
-                <td style="font-weight:600;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${this._esc(front)}</td>
-                <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${this._esc(back)}</td>
-                <td style="font-size:11px;color:var(--accent)">${this._esc(tags)}</td>
+                <td class="imp-cell-front" data-edited="${this._esc(front)}" style="font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${this._esc(front)}</td>
+                <td class="imp-cell-back" data-edited="${this._esc(back)}" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${this._esc(back)}</td>
+                <td class="imp-cell-tags" style="font-size:11px;color:var(--accent)">${this._esc(tags)}</td>
+                <td style="white-space:nowrap">
+                    <button class="imp-edit-btn" title="Sửa" style="padding:2px 6px;border-radius:4px;border:1px solid var(--border);background:var(--surface-3);color:var(--text-muted);cursor:pointer;font-size:13px;margin-right:2px">✏️</button>
+                    <button class="imp-del-btn" title="Xóa" style="padding:2px 6px;border-radius:4px;border:1px solid var(--border);background:var(--surface-3);color:var(--danger);cursor:pointer;font-size:13px">🗑</button>
+                </td>
             `;
             frag.appendChild(tr);
         });
@@ -631,23 +645,62 @@ class DataImportComponent {
         this._showStep('confirm');
     }
 
+    /** [F2] Inline edit front/back cells on ✏️ click */
+    _handleEditRow(btn) {
+        const tr = btn.closest('tr');
+        if (!tr) return;
+        ['.imp-cell-front', '.imp-cell-back'].forEach(sel => {
+            const td = tr.querySelector(sel);
+            if (!td || td.querySelector('input')) return;
+            const orig = td.dataset.edited || td.textContent;
+            const input = document.createElement('input');
+            input.className = 'imp-inline-edit';
+            input.value = orig;
+            input.style.cssText = 'width:100%;border:1px solid var(--primary);border-radius:4px;padding:2px 5px;background:var(--surface-3);color:var(--text);font-size:13px;outline:none;box-sizing:border-box';
+            input.addEventListener('blur', () => {
+                const val = input.value.trim();
+                td.dataset.edited = val;
+                td.textContent = val || '(trống)';
+            });
+            input.addEventListener('keydown', e => {
+                if (e.key === 'Enter') input.blur();
+                if (e.key === 'Escape') { td.dataset.edited = orig; td.textContent = orig; }
+            });
+            td.textContent = '';
+            td.appendChild(input);
+            if (sel === '.imp-cell-front') setTimeout(() => input.focus(), 10);
+        });
+    }
+
+    /** [F2] Remove row from confirm table on 🗑 click */
+    _handleDelRow(btn) {
+        btn.closest('tr')?.remove();
+        this._updateImportBtn();
+    }
+
+
     // ── IMPORT ───────────────────────────────────────────────────
     _doImport() {
         const deckId = document.getElementById('imp-deck-select').value;
         if (!deckId) { toast('Vui lòng chọn deck', 'warning'); return; }
 
-        const cols    = this._getSelectedCols();
-        const checked = [...document.querySelectorAll('.imp-row-chk:checked')]
-            .map(cb => +cb.dataset.idx)
-            .map(i => this._parsedRows[i])
+        // [F2] Read directly from DOM — supports edited & deleted rows
+        const checkedRows = [...document.querySelectorAll('.imp-row-chk:checked')]
+            .map(cb => cb.closest('tr'))
             .filter(Boolean);
 
         let ok = 0, errors = 0;
-        for (const row of checked) {
-            const front = this._buildVal(row, cols.frontCols);
-            const back  = this._buildVal(row, cols.backCols);
-            const rawTags = cols.tagsCol ? row[cols.tagsCol] || '' : '';
-            const tags  = rawTags ? rawTags.split(/[,;、，]/).map(t => t.trim()).filter(Boolean) : ['imported'];
+        for (const tr of checkedRows) {
+            const frontTd = tr.querySelector('.imp-cell-front');
+            const backTd  = tr.querySelector('.imp-cell-back');
+            const tagsTd  = tr.querySelector('.imp-cell-tags');
+
+            const front   = (frontTd?.dataset.edited ?? frontTd?.textContent ?? '').trim();
+            const back    = (backTd?.dataset.edited  ?? backTd?.textContent  ?? '').trim();
+            const rawTags = (tagsTd?.textContent ?? '').trim();
+            const tags    = rawTags
+                ? rawTags.split(/[,;、，]/).map(t => t.trim()).filter(Boolean)
+                : ['imported'];
 
             if (!front && !back) continue;
             try {
@@ -664,6 +717,7 @@ class DataImportComponent {
                 if (errors <= 3) console.warn('[Import] card error:', e);
             }
         }
+
 
         this._targetDeckId = deckId;
         const errMsg = errors ? ` (${errors} lỗi)` : '';

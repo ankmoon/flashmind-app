@@ -64,7 +64,7 @@
         </button>
       </div>
       <div class="welcome-features">
-        <div class="feature-chip"><span>🧠</span> SM-2 SRS</div>
+        <div class="feature-chip"><span>🧠</span> Học theo lịch</div>
         <div class="feature-chip"><span>💾</span> Lưu cục bộ</div>
         <div class="feature-chip"><span>📝</span> Markdown</div>
         <div class="feature-chip"><span>📊</span> Thống kê</div>
@@ -133,6 +133,10 @@
           Import
         </button>
         <div class="header-divider"></div>
+        <!-- [F4] Theme toggle button -->
+        <button id="btn-theme-toggle" class="icon-btn" title="Đổi chế độ sáng/tối">
+          <span id="theme-toggle-icon">☀️</span>
+        </button>
         <div class="streak-badge" id="header-streak">
           <span>🔥</span>
           <span id="streak-count">0</span>
@@ -497,12 +501,21 @@ Hỗ trợ **Markdown**, _italic_, `code`, [links](url)"></textarea>
 
     <!-- Study Header -->
     <div class="study-header">
-      <button id="study-close-btn" class="study-close-btn" title="Thoát (Esc)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-        Thoát
-      </button>
+      <div class="study-header-left">
+        <button id="study-close-btn" class="study-close-btn" title="Thoát (Esc)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+          Thoát
+        </button>
+        <!-- [F7] Back to previous card -->
+        <button id="study-back-btn" class="study-back-btn" title="Quay lại thẻ trước (←)" style="display:none">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15,18 9,12 15,6"/>
+          </svg>
+          Thẻ trước
+        </button>
+      </div>
       <div class="study-progress-bar">
         <div class="study-progress-track">
           <div class="study-progress-fill" id="study-progress-fill" style="width:0%"></div>
@@ -589,7 +602,8 @@ Hỗ trợ **Markdown**, _italic_, `code`, [links](url)"></textarea>
 
     <!-- Keyboard shortcuts hint -->
     <div class="study-kbd-hint">
-      <kbd>Space</kbd> Lật thẻ &nbsp;|&nbsp;
+      <kbd>Space</kbd> Lật/Bật thẻ &nbsp;|&nbsp;
+      <kbd>←</kbd> Thẻ trước &nbsp;|&nbsp;
       <kbd>1</kbd> Quên &nbsp;<kbd>2</kbd> Khó &nbsp;<kbd>3</kbd> Nhớ &nbsp;<kbd>4</kbd> Dễ &nbsp;|&nbsp;
       <kbd>Esc</kbd> Thoát
     </div>
