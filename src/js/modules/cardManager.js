@@ -106,7 +106,7 @@ export class CardManager {
             SELECT c.*, cr.easiness, cr.interval, cr.repetitions, cr.due_date, cr.last_review
             FROM cards c
             JOIN card_reviews cr ON cr.card_id = c.id
-            WHERE cr.repetitions > 0 AND cr.due_date <= ?
+            WHERE cr.due_date > 0 AND cr.due_date <= ?
         `;
         const params = [now];
 
@@ -131,7 +131,7 @@ export class CardManager {
             SELECT c.*, cr.easiness, cr.interval, cr.repetitions, cr.due_date, cr.last_review
             FROM cards c
             JOIN card_reviews cr ON cr.card_id = c.id
-            WHERE cr.repetitions = 0
+            WHERE cr.due_date = 0
         `;
         const params = [];
 
@@ -166,9 +166,9 @@ export class CardManager {
     getCardsByLevel(deckId, { levels = ['new', 'due', 'learned'], limit = 200 } = {}) {
         const now = Date.now();
         const conditions = [];
-        if (levels.includes('new'))     conditions.push('cr.repetitions = 0');
-        if (levels.includes('due'))     conditions.push(`(cr.repetitions > 0 AND cr.due_date <= ${now})`);
-        if (levels.includes('learned')) conditions.push(`(cr.repetitions > 0 AND cr.due_date > ${now})`);
+        if (levels.includes('new'))     conditions.push('cr.due_date = 0');
+        if (levels.includes('due'))     conditions.push(`(cr.due_date > 0 AND cr.due_date <= ${now})`);
+        if (levels.includes('learned')) conditions.push(`(cr.due_date > 0 AND cr.due_date > ${now})`);
 
         if (!conditions.length) return [];
 
@@ -193,7 +193,7 @@ export class CardManager {
         let sql = `
             SELECT COUNT(*) as cnt FROM card_reviews cr
             JOIN cards c ON c.id = cr.card_id
-            WHERE cr.repetitions > 0 AND cr.due_date <= ?
+            WHERE cr.due_date > 0 AND cr.due_date <= ?
         `;
         const params = [now];
         if (deckId) { sql += ' AND c.deck_id = ?'; params.push(deckId); }
