@@ -264,8 +264,11 @@ class FlashMindApp {
         const isGrid = this._currentSubView === 'grid';
         const isStats = this._currentSubView === 'stats';
 
-        document.getElementById('view-grid')?.classList.toggle('active', isGrid);
-        document.getElementById('view-list')?.classList.toggle('active', isVocab);
+        // Keep view-grid and view-list intact for CardGrid.js (layout modes)
+        // Instead, mark the vocab button active or not
+        document.getElementById('btn-view-vocab')?.classList.toggle('btn-primary', isVocab);
+        document.getElementById('btn-view-vocab')?.classList.toggle('btn-secondary', !isVocab);
+        
         document.getElementById('btn-stats-nav')?.classList.toggle('active', isStats);
 
         // Hide/show search bar based on view
@@ -345,11 +348,16 @@ class FlashMindApp {
             searchInput.addEventListener('input', onSearch);
         }
 
-        // View toggle buttons
-        document.getElementById('view-grid')?.addEventListener('click', () => this._showCardGrid());
-        document.getElementById('view-list')?.addEventListener('click', () => this._showVocabList());
+        // View toggle buttons (layout modes for CardGrid)
+        // Ensure returning to CardGrid if currently in another subview
+        document.getElementById('view-grid')?.addEventListener('click', () => {
+            if (this._currentSubView !== 'grid') this._showCardGrid();
+        });
+        document.getElementById('view-list')?.addEventListener('click', () => {
+            if (this._currentSubView !== 'grid') this._showCardGrid();
+        });
 
-        // View Vocab button (header action)
+        // View Vocab button (VocabList table)
         document.getElementById('btn-view-vocab')?.addEventListener('click', () => {
             if (this._currentSubView === 'vocab') {
                 this._showCardGrid();
