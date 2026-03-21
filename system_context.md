@@ -41,6 +41,7 @@ src/
     study.css                 ← Study mode overlay (3D flip)
     pdf-import.css            ← Import panel styles
     quiz.css                  ← Quiz mode styles
+    vocab.css                 ← Vocabulary list table styles (P3-3)
   js/
     app.js                    ← Main controller (FlashMindApp class)
     utils.js                  ← EventBus, toast, modal helpers, debounce
@@ -62,6 +63,8 @@ src/
       QuizMode.js             ← Quiz mode (MCQ style)
       Statistics.js           ← Stats view (charts, heatmap, table)
       PdfImport.js            ← Import từ PDF / Excel / CSV
+      Settings.js             ← Cấu hình SRS intervals (P3-4)
+      VocabList.js            ← Detailed table view (P3-3)
 test/
   index.html                  ← Test runner (standalone)
 vercel.json                   ← Headers config (X-Frame-Options)
@@ -88,6 +91,7 @@ manifest.json                 ← PWA manifest
 - Rating scale: 1 (Quên) → 2 (Khó) → 3 (Nhớ) → 4 (Dễ)  
 - Map to SM-2: 1=fail, 2=fail, 3=pass-good, 4=pass-easy  
 - Easiness factor tối thiểu: 1.3  
+- **SRS Intervals**: Có thể cấu hình trong Settings (mặc định: Again=10m, Hard=1d, Good=1d, Easy=4d).  
 - Streak tracking: `settings.streak` + `settings.last_study_date`
 
 ---

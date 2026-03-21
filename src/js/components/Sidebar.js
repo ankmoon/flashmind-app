@@ -175,18 +175,21 @@ export class Sidebar {
             this.currentDeckName = deck.name;
             bus.emit('deck:selected', deck);
 
-            // Show / enable "Học ngay" button
+            // Show / enable buttons
             const studyBtn = document.getElementById('btn-study-now');
-            if (studyBtn) {
-                studyBtn.style.display = '';
-                // Remove old listeners to prevent duplicates
-                const fresh = studyBtn.cloneNode(true);
-                studyBtn.parentNode.replaceChild(fresh, studyBtn);
-                fresh.addEventListener('click', () => {
-                    bus.emit('study:launch', { deckId, deckName: deck.name });
-                });
-            }
+            const vocabBtn = document.getElementById('btn-view-vocab');
+            const addBtn   = document.getElementById('btn-add-card');
+
+            if (studyBtn) studyBtn.style.display = '';
+            if (vocabBtn) vocabBtn.style.display = '';
+            if (addBtn)   addBtn.style.display   = '';
+
+            // Note: event listeners for studyBtn are handled in app.js now 
+            // to avoid duplication and keep logic centralized.
         }
+
+        // Clear subview if switching decks
+        bus.emit('view:reset-subview');
     }
 
     _toggleExpand(deckId, itemEl, btnEl) {

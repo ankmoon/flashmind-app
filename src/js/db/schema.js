@@ -87,6 +87,12 @@ export const DEFAULT_SETTINGS = {
     license_validated_at: 0,
     streak: 0,
     last_study_date: 0,
+    srs_intervals: {
+        again: { value: 10, unit: 'min' },
+        hard:  { value: 1,  unit: 'day' },
+        good:  { value: 1,  unit: 'day' },
+        easy:  { value: 4,  unit: 'day' }
+    }
 };
 
 export function getSchemaVersion(db) {

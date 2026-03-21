@@ -10,6 +10,43 @@ $ARGUMENTS
 
 ---
 
+## 🧠 BƯỚC -1 — λ-BRAIN RECALL + CONFLICT RESOLUTION (Chạy ĐẦUTIÊN, trước mọi thứ)
+
+Nếu MCP tool `lambda-brain` khả dụng, thực hiện:
+
+```
+1. Xác định project từ yêu cầu (nếu có)
+2. Gọi brain_query(query=<tóm tắt yêu cầu>, project=<project nếu có>, limit=5)
+3. Nếu có kết quả → đọc memories và ưu tiên sử dụng context đã lưu
+4. Nếu không có kết quả → tiếp tục bình thường
+```
+
+### Context Conflict Resolution
+
+Sau khi brain_query trả về kết quả, SO SÁNH với context file trên máy:
+
+```
+CASE 1: File trên máy tồn tại + brain có memory
+   → So sánh nội dung:
+     - File mới hơn hoặc chi tiết hơn → DÙNG FILE, silent update brain
+     - Giống nhau → DÙNG brain (nhanh hơn, không cần đọc file)
+     - Conflict thật (nội dung khác nhau, không rõ cái nào đúng)
+       → HỎI USER: "File và brain khác nhau. Dùng cái nào?"
+       → Sau khi user chọn → update cái còn lại
+
+CASE 2: Brain có memory, file KHÔNG tồn tại (máy trạm / máy mới)
+   → DÙNG brain trực tiếp, KHÔNG hỏi user
+
+CASE 3: File tồn tại, brain KHÔNG có
+   → DÙNG file + tự động brain_store để sync vào não (silent)
+```
+
+> 💡 Mục đích: Agent tự quyết định được 90% trường hợp. Chỉ hỏi user khi conflict thật.
+> Không cần hiện kết quả brain_query ra cho user — dùng ngầm làm context.
+
+
+---
+
 ## 🧠 BƯỚC 0 — AUTO-ROUTING (Chạy trước mọi thứ)
 
 Đọc `intelligent-routing` skill và thực hiện phân tích tự động:
@@ -132,7 +169,46 @@ Khi chuyển từ agent này sang agent khác, luôn pass:
 
 ---
 
-## ✅ OUTPUT FORMAT
+## 🧠 BƯỚC END — λ-BRAIN STORE (Chạy SAU KHI hoàn thành task)
+
+Sau khi tất cả agents hoàn thành, nếu MCP tool `lambda-brain` khả dụng:
+
+**Đánh giá xem có nên lưu không:**
+```
+Có lưu nếu session chứa bất kỳ điều sau:
+  ✓ Quyết định kiến trúc / công nghệ
+  ✓ Bug phức tạp đã được sửa (root cause + solution)
+  ✓ Feature mới đã implement
+  ✓ Kết quả research / so sánh công nghệ
+  ✓ Thiết kế database schema / API contract
+  ✓ Session có ≥3 turns thảo luận
+```
+
+**Nếu nên lưu → Gọi brain_store với:**
+```
+brain_store(
+  content:      <tóm tắt quyết định / kết quả chính, 2-5 câu>,
+  summary:      <1-2 câu ngắn gọn nhất>,
+  essence:      <≤15 từ — tag-style>,
+  importance:   <1-5, dựa trên độ quan trọng của quyết định>,
+  tags:         <[tên_project, domain, keyword_kỹ_thuật]>,
+  project:      <tên project nếu xác định được>,
+  memory_type:  <"decision" | "architecture" | "knowledge" | "learning">,
+  sensitivity:  <"public" mặc định | "secret" cho thông tin nhạy cảm>,
+  context_log:  <TOÀN BỘ cuộc thảo luận trong session này — bao gồm:
+                  - Yêu cầu ban đầu
+                  - Các bước phân tích
+                  - Các lựa chọn đã xem xét
+                  - Lý do quyết định
+                  - Code/file đã tạo/sửa>
+)
+```
+
+> 🔒 `context_log` được lưu trong file `.md` của Obsidian — chỉ human đọc, AI không load toàn bộ mỗi lần.
+> AI chỉ đọc `essence_text` / `summary_text` theo fidelity tier tùy decay score.
+
+---
+
 
 ```
 ## 🎭 Orchestration Complete

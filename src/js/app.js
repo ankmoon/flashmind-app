@@ -19,6 +19,9 @@ import { studyLauncher } from './components/StudyLauncher.js';
 import { quizMode }    from './components/QuizMode.js';
 import { statistics }  from './components/Statistics.js';
 import { pdfImport }   from './components/PdfImport.js';
+import { settings }    from './components/Settings.js';
+import { vocabList }   from './components/VocabList.js';
+
 import {
     bus, toast, openModal, closeModal,
     setVisible, debounce, renderMarkdown,
@@ -39,6 +42,9 @@ class FlashMindApp {
         this.quizMode    = quizMode;
         this.statistics  = statistics;
         this.pdfImport   = pdfImport;
+        this.settings    = settings;
+        this.vocabList   = vocabList;
+        this._currentSubView = 'grid'; // 'grid', 'vocab', 'stats'
     }
 
     // ─── BOOTSTRAP ───────────────────────────────────────────────
@@ -61,6 +67,8 @@ class FlashMindApp {
             this.studyLauncher.init(); // Study Launcher
             this.quizMode.init();    // Quiz Mode
             this.pdfImport.init();   // PDF Import
+            this.settings.init();    // Settings
+            this.vocabList.init();   // Vocab List
 
             // Phase 3: Bind global events
             this._setLoadingStatus('Cấu hình sự kiện...', 75);
@@ -229,14 +237,49 @@ class FlashMindApp {
     // ─── VIEW MANAGEMENT ──────────────────────────────────────────
 
     _showCardGrid() {
+        setVisible('content-empty-state', false);
         setVisible('card-grid',   true);
         setVisible('stats-view', false);
+        setVisible('vocab-list', false);
+        this._currentSubView = 'grid';
+        this._updateViewToggleStatus();
+    }
+
+    _showVocabList() {
+        if (!this.sidebar.currentDeckId) {
+            toast('Vui lòng chọn một deck trước', 'warning');
+            return;
+        }
+        setVisible('content-empty-state', false);
+        setVisible('card-grid',   false);
+        setVisible('stats-view', false);
+        setVisible('vocab-list', true);
+        this.vocabList.render(this.sidebar.currentDeckId);
+        this._currentSubView = 'vocab';
+        this._updateViewToggleStatus();
+    }
+
+    _updateViewToggleStatus() {
+        const isVocab = this._currentSubView === 'vocab';
+        const isGrid = this._currentSubView === 'grid';
+        const isStats = this._currentSubView === 'stats';
+
+        document.getElementById('view-grid')?.classList.toggle('active', isGrid);
+        document.getElementById('view-list')?.classList.toggle('active', isVocab);
+        document.getElementById('btn-stats-nav')?.classList.toggle('active', isStats);
+
+        // Hide/show search bar based on view
+        document.getElementById('search-container')?.classList.toggle('hidden', !isGrid);
     }
 
     _showStats() {
+        setVisible('content-empty-state', false);
         setVisible('card-grid',   false);
+        setVisible('vocab-list', false);
         setVisible('stats-view', true);
         this._updateStatusBar();
+        this._currentSubView = 'stats';
+        this._updateViewToggleStatus();
         // Phase 2: Render charts & heatmap
         requestAnimationFrame(() => this.statistics.render());
     }
@@ -302,6 +345,19 @@ class FlashMindApp {
             searchInput.addEventListener('input', onSearch);
         }
 
+        // View toggle buttons
+        document.getElementById('view-grid')?.addEventListener('click', () => this._showCardGrid());
+        document.getElementById('view-list')?.addEventListener('click', () => this._showVocabList());
+
+        // View Vocab button (header action)
+        document.getElementById('btn-view-vocab')?.addEventListener('click', () => {
+            if (this._currentSubView === 'vocab') {
+                this._showCardGrid();
+            } else {
+                this._showVocabList();
+            }
+        });
+
         // Modal close buttons (data-close attribute)
         document.querySelectorAll('[data-close]').forEach(btn => {
             btn.addEventListener('click', () => closeModal(btn.dataset.close));
@@ -362,6 +418,21 @@ class FlashMindApp {
             this._updateDirtyIndicator();
         });
 
+        // Auto-save SRS progress when study session finishes
+        // This ensures due_date, interval, repetitions are persisted to file
+        bus.on('study:finished', async () => {
+            if (!fileManager.fileHandle && !fileManager.fileName) return; // no file open
+            try {
+                await fileManager.save();
+                this._updateDirtyIndicator();
+                toast('💾 SRS đã lưu tự động', 'success');
+            } catch (err) {
+                // If save fails (e.g. no fileHandle → downloads file), just silently skip
+                // User can still save manually
+                console.warn('[AutoSave] Failed:', err.message);
+            }
+        });
+
         // "Ôn tập ngay" due banner button
         document.getElementById('btn-study-due')?.addEventListener('click', () => {
             const deckId   = this.sidebar?.currentDeckId;
@@ -378,6 +449,11 @@ class FlashMindApp {
             this._showStats();
             document.querySelectorAll('.sidebar-nav-item').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-stats-nav')?.classList.add('active');
+        });
+
+        // Settings nav
+        document.getElementById('btn-settings-nav')?.addEventListener('click', () => {
+            this.settings.open();
         });
     }
 

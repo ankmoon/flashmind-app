@@ -347,6 +347,9 @@ export class StudyMode {
 
         // Progress to 100%
         this._getEl('study-progress-fill').style.width = '100%';
+
+        // Notify app to auto-save SRS progress
+        bus.emit('study:finished', { stats: this._stats });
     }
 
     // ─── PROGRESS & UI ───────────────────────────────────────────

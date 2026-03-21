@@ -15,9 +15,23 @@ import { dbManager } from '../db/database.js';
 // 4 = Đúng, dễ nhớ
 // 5 = Đúng ngay lập tức, rất dễ
 
-const MIN_EASINESS = 1.3;
-
 export class SRSManager {
+    constructor() {
+        this.MIN_EASINESS = 1.3;
+    }
+
+    /**
+     * Convert SRS config (value + unit) to fractional days.
+     * @param {{ value: number, unit: string }} config
+     * @returns {number}
+     */
+    _toDays(config) {
+        if (!config) return 1;
+        const { value, unit } = config;
+        if (unit === 'min')  return value / (24 * 60);
+        if (unit === 'hour') return value / 24;
+        return value; // days
+    }
 
     /**
      * Calculate next review schedule based on SM-2.
@@ -27,23 +41,35 @@ export class SRSManager {
      */
     calculateNextReview(rating, current) {
         let { easiness = 2.5, interval = 0, repetitions = 0 } = current;
+        const settings = dbManager.getSetting('srs_intervals') || {
+            again: { value: 10, unit: 'min' },
+            hard:  { value: 1,  unit: 'day' },
+            good:  { value: 1,  unit: 'day' },
+            easy:  { value: 4,  unit: 'day' }
+        };
 
         if (rating >= 3) {
-            // Correct response
-            if (repetitions === 0)      interval = 1;
-            else if (repetitions === 1) interval = 6;
-            else                        interval = Math.round(interval * easiness);
-
+            // Correct response (Good or Easy)
+            if (repetitions === 0) {
+                interval = (rating === 5) ? this._toDays(settings.easy) : this._toDays(settings.good);
+            } else if (repetitions === 1) {
+                // For SM-2, the second interval is usually 6 days.
+                // If it's a "custom" good/easy, we can scale it or use a default.
+                // Let's stick to SM-2 formula but adjust starting points.
+                interval = 6;
+            } else {
+                interval = Math.round(interval * easiness);
+            }
             repetitions += 1;
         } else {
-            // Incorrect response — reset
+            // Incorrect response (Again or Hard in this app's logic for rating < 3)
             repetitions = 0;
-            interval    = 1;
+            interval = (rating === 1) ? this._toDays(settings.again) : this._toDays(settings.hard);
         }
 
         // Update E-Factor (difficulty modifier)
         easiness = easiness + (0.1 - (5 - rating) * (0.08 + (5 - rating) * 0.02));
-        easiness = Math.max(MIN_EASINESS, easiness);
+        easiness = Math.max(this.MIN_EASINESS, easiness);
 
         const dueDate = Date.now() + interval * 24 * 60 * 60 * 1000;
 
@@ -142,10 +168,19 @@ export class SRSManager {
      */
     getIntervalText(intervalDays) {
         if (!intervalDays) return 'Hôm nay';
-        if (intervalDays === 1)  return 'Ngày mai';
-        if (intervalDays < 7)   return `${intervalDays} ngày`;
-        if (intervalDays < 30)  return `${Math.round(intervalDays / 7)} tuần`;
-        return `${Math.round(intervalDays / 30)} tháng`;
+        if (intervalDays < 1/1440) return 'Ngay lập tức';
+        
+        const min = intervalDays * 1440;
+        if (min < 60) return `${Math.round(min)} phút`;
+        
+        const hour = intervalDays * 24;
+        if (hour < 24) return `${Math.round(hour)} giờ`;
+
+        const days = Math.round(intervalDays);
+        if (days === 1)  return 'Ngày mai';
+        if (days < 7)   return `${days} ngày`;
+        if (days < 30)  return `${Math.round(days / 7)} tuần`;
+        return `${Math.round(days / 30)} tháng`;
     }
 
     /**

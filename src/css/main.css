@@ -43,8 +43,11 @@
   --grad-primary:   linear-gradient(135deg, #7c5cfc, #06b6d4);
   --grad-surface:   linear-gradient(135deg, rgba(124,92,252,0.08), rgba(6,182,212,0.05));
   --grad-card:      linear-gradient(145deg, #18181f, #22222d);
+  --grad-back:      linear-gradient(145deg, #130d2a 0%, #1a1230 100%);
 
-  /* Shadows */
+  --border-back:    rgba(124,92,252,0.35);
+  --text-back-label: rgba(124,92,252,0.7);
+ /* Shadows */
   --shadow-xs:    0 1px 4px rgba(0,0,0,0.3);
   --shadow-sm:    0 2px 8px rgba(0,0,0,0.35);
   --shadow-md:    0 4px 16px rgba(0,0,0,0.45);
@@ -111,6 +114,10 @@
   --text-inverse: #f8f8fc;
 
   --grad-card:      linear-gradient(145deg, #ffffff, #f4f4fa);
+  --grad-back:      linear-gradient(145deg, #f0f0ff 0%, #e8e8ff 100%);
+
+  --border-back:    rgba(124,92,252,0.2);
+  --text-back-label: #7c5cfc;
 
   --shadow-xs:    0 1px 4px rgba(0,0,0,0.08);
   --shadow-sm:    0 2px 8px rgba(0,0,0,0.10);
