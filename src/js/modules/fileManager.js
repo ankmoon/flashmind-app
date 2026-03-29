@@ -5,6 +5,7 @@
  */
 
 import { dbManager as globalDbManager } from '../db/database.js';
+import { fileCacheStore } from './idbStore.js';
 
 const FILE_EXTENSION = '.flashcard';
 const MIME_TYPE      = 'application/x-flashcard';
@@ -52,6 +53,8 @@ export class FileManager {
             updated_at: new Date().toISOString(),
             name: name,
         };
+
+        await this.saveToIDB();
 
         return this;
     }
@@ -133,6 +136,7 @@ export class FileManager {
         await this._db.loadFromBytes(dbBytes);
 
         this.isDirty = false;
+        await this.saveToIDB();
     }
 
     // ─── SAVE FILE ───────────────────────────────────────────────
@@ -141,12 +145,18 @@ export class FileManager {
      * Save to current file handle (if exists), otherwise prompt save-as.
      */
     async save() {
-        if (this.fileHandle) {
-            await this._writeTo(this.fileHandle);
-            this.isDirty = false;
-        } else {
-            await this.saveAs();
+        if (this.fileHandle && FileManager.isSupported()) {
+            // Re-verify permission in case handle was restored from IDB
+            const granted = await this._verifyPermission(this.fileHandle, true);
+            if (granted) {
+                await this._writeTo(this.fileHandle);
+                this.isDirty = false;
+                await this.saveToIDB();
+                return;
+            }
         }
+        
+        await this.saveAs();
     }
 
     /**
@@ -177,6 +187,7 @@ export class FileManager {
                 await this._fallbackDownload();
             }
             this.isDirty = false;
+            await this.saveToIDB();
             return true;
         } catch (err) {
             if (err.name === 'AbortError') return false;
@@ -189,10 +200,29 @@ export class FileManager {
      * @param {FileSystemFileHandle} handle
      */
     async _writeTo(handle) {
+        if (!handle) return;
         const blob = await this._buildZip();
         const writable = await handle.createWritable();
         await writable.write(blob);
         await writable.close();
+    }
+
+    /**
+     * Verify and request permission for a handle
+     * @param {FileSystemHandle} handle 
+     * @param {boolean} withWrite 
+     */
+    async _verifyPermission(handle, withWrite) {
+        const options = { mode: withWrite ? 'readwrite' : 'read' };
+        
+        // Check if we already have permission
+        if ((await handle.queryPermission(options)) === 'granted') {
+            return true;
+        }
+        
+        // Request permission
+        const request = await handle.requestPermission(options);
+        return request === 'granted';
     }
 
     /**
@@ -257,10 +287,71 @@ export class FileManager {
 
     // ─── HELPERS ─────────────────────────────────────────────────
 
-    markDirty() { this.isDirty = true; }
+    markDirty() { 
+        this.isDirty = true; 
+        if (this._saveTimeout) clearTimeout(this._saveTimeout);
+        this._saveTimeout = setTimeout(() => this.saveToIDB(), 1000); // 1s debounce
+    }
 
     getFileName() {
         return this.fileName.replace(FILE_EXTENSION, '');
+    }
+
+    // ─── AUTO-SAVE IDB ──────────────────────────────────────────
+
+    async saveToIDB() {
+        try {
+            const dbBytes = this._db.exportBytes();
+            const payload = {
+                fileName: this.fileName,
+                fileHandle: this.fileHandle instanceof FileSystemFileHandle ? this.fileHandle : null,
+                meta: this.meta,
+                dbBytes: dbBytes,
+                timestamp: Date.now()
+            };
+
+            try {
+                await fileCacheStore.set('autosave', payload);
+            } catch (err) {
+                if (err.name === 'DataCloneError') {
+                    // Fallback for browsers that don't support serializing FileSystemFileHandle
+                    payload.fileHandle = null;
+                    await fileCacheStore.set('autosave', payload);
+                } else {
+                    throw err;
+                }
+            }
+        } catch (e) {
+            console.warn('[FileManager] Failed to auto-save to IDB:', e);
+        }
+    }
+
+    async restoreFromIDB() {
+        try {
+            const cached = await fileCacheStore.get('autosave');
+            if (!cached || !cached.dbBytes) return false;
+
+            // Ensure DB engine is ready
+            await this._db.loadFromBytes(cached.dbBytes);
+            this.meta = cached.meta;
+            this.fileName = cached.fileName;
+            
+            // Try to restore fileHandle
+            if (cached.fileHandle && FileManager.isSupported()) {
+                // If it's a valid handle, just set it. We don't ask for permission eagerly.
+                // FileSystemFileHandle serialization requires user gesture to re-verify permissions later,
+                // but we can hold onto the handle until the user tries to save.
+                this.fileHandle = cached.fileHandle;
+            } else {
+                this.fileHandle = null;
+            }
+            
+            this.isDirty = false;
+            return true;
+        } catch (e) {
+            console.warn('[FileManager] IDB Restoration failed:', e);
+            return false;
+        }
     }
 }
 

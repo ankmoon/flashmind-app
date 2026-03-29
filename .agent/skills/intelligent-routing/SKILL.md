@@ -46,6 +46,7 @@ graph TD
 | **Refactoring**   | "refactor", "clean", "improve"      | `refactor-cleaner`         | ✅ YES       |
 | **Documentation** | "docs", "readme", "document"        | `doc-updater`              | ✅ YES       |
 | **Knowledge**     | "learn", "remember", "pattern"      | `knowledge-agent`          | ✅ YES       |
+| **Use Case**      | "use case", "đặc tả UC", "UC spec"  | `uc-analyst-agent`         | ✅ YES       |
 | **Complex Task**  | Multiple domains detected           | `planner` → multi-agent    | ⚠️ ASK FIRST |
 
 ---
@@ -63,6 +64,7 @@ graph TD
 | **Build**        | error, compile, typescript, lint      | `build-error-resolver`     |
 | **Refactor**     | clean, refactor, improve, optimize    | `refactor-cleaner`         |
 | **Docs**         | readme, document, api-docs            | `doc-updater`              |
+| **Use Case**     | use case, prd, uc spec, đặc tả uc     | `uc-analyst-agent`         |
 
 ### Multi-Domain Tasks (Orchestration Required)
 

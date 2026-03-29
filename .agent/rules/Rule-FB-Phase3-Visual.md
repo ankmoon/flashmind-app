@@ -87,10 +87,17 @@ Nếu bài đăng cần text trên ảnh, tuân theo:
 
 ## Output Của Phase 3
 
-- File ảnh được lưu tại đường dẫn agent xác định
-- Ghi nhận đường dẫn vào `fb_brief_[timestamp].json`:
+> ⚠️ **BẮT BUỘC SAU KHI GENERATE ẢNH:**
+> Tool `generate_image` luôn lưu file vào ổ C (thư mục Artifacts). Agent PHẢI tự động copy ảnh sang đúng thư mục dự án trên ổ D **NGAY SAU KHI TẠO**, không cần hỏi user:
+> ```powershell
+> Copy-Item "C:\Users\GAME\.gemini\antigravity\brain\<conv-id>\<filename>.png" `
+>           "D:\My office\Projects\<project-name>\images\<filename>.png"
+> ```
+> Sau đó báo cáo với user: **đường dẫn trên ổ D** (không phải ổ C).
+
+- Ghi nhận đường dẫn ổ D vào `fb_brief_[timestamp].json`:
   ```json
-  "image_path": "absolute/path/to/image.webp",
+  "image_path": "D:\\My office\\Projects\\<project>\\images\\<filename>.png",
   "image_style": "minimal | vibrant | cinematic | playful",
   "image_ratio": "1:1 | 4:5 | 16:9"
   ```

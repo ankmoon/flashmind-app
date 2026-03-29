@@ -51,16 +51,16 @@ Ghi vào `D:\My office\office\agent_status.json`:
 | AGENT | Skill file |
 |---|---|
 | `auto` hoặc rỗng | Đọc `/orchestrate` để tự chọn |
-| `BA` | `.agent/skills/ba-agent/SKILL.md` |
-| `FE` | `.agent/skills/fe-agent/SKILL.md` |
-| `BE` | `.agent/skills/be-agent/SKILL.md` |
-| `Design` | `.agent/skills/design-agent/SKILL.md` |
-| `DevOps` | `.agent/skills/devops-agent/SKILL.md` |
-| `QC` | `.agent/skills/qc-agent/SKILL.md` |
-| `Marketing` | `.agent/skills/marketing-agent/SKILL.md` |
-| `GameDesign` | `.agent/skills/game-designer-agent/SKILL.md` |
-| `GameArt` | `.agent/skills/game-artist-agent/SKILL.md` |
-| `SA` | `.agent/skills/sa-agent/SKILL.md` |
+| `BA` | `.agent/agents/ba-agent.md` |
+| `FE` | `.agent/agents/fe-agent.md` |
+| `BE` | `.agent/agents/be-agent.md` |
+| `Design` | `.agent/agents/design-agent.md` |
+| `DevOps` | `.agent/agents/devops-agent.md` |
+| `QC` | `.agent/agents/qc-agent.md` |
+| `Marketing` | `.agent/agents/marketing-agent.md` |
+| `GameDesign` | `.agent/agents/game-designer-agent.md` |
+| `GameArt` | `.agent/agents/game-artist-agent.md` |
+| `SA` | `.agent/agents/sa-agent.md` |
 
 ### Bước 5 — Xử lý yêu cầu
 Đóng vai agent tương ứng, xử lý message với đầy đủ context vừa load. Nếu MODEL được chỉ định trong header, ưu tiên cách tiếp cận phù hợp với model đó (ví dụ: flash = ngắn gọn nhanh, pro = phân tích sâu).

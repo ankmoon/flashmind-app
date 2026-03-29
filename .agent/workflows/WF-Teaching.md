@@ -8,7 +8,7 @@ description: Quy trình chuẩn bị và hỗ trợ buổi dạy BA tại TankBA
 
 ## Trước khi làm bất kỳ điều gì
 
-1. Đọc skill: `D:\My office\.agent\skills\ba-instructor-agent\SKILL.md`
+1. Đọc skill: `D:\My office\.agent\agents\ba-instructor-agent.md`
 
 ---
 

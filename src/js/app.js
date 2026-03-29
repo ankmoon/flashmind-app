@@ -14,7 +14,7 @@ import { Sidebar }     from './components/Sidebar.js';
 import { CardGrid }    from './components/CardGrid.js';
 import { CardEditor }  from './components/CardEditor.js';
 import { DeckModal }   from './components/DeckModal.js';
-import { studyMode }   from './components/StudyMode.js';
+import { studyMode, StudyMode } from './components/StudyMode.js';
 import { studyLauncher } from './components/StudyLauncher.js';
 import { quizMode }    from './components/QuizMode.js';
 import { statistics }  from './components/Statistics.js';
@@ -83,7 +83,15 @@ class FlashMindApp {
             this._initTheme();
 
             await this._sleep(400);
-            this._showWelcomeScreen();
+
+            // Try auto-loading last opened file from IndexedDB
+            const restored = await fileManager.restoreFromIDB();
+            if (restored) {
+                this._onFileLoaded();
+                toast(`📂 Đã khôi phục file: ${fileManager.fileName}`, 'success');
+            } else {
+                this._showWelcomeScreen();
+            }
 
         } catch (err) {
             console.error('[FlashMind] Init error:', err);
@@ -93,14 +101,21 @@ class FlashMindApp {
 
     // ─── SCREEN TRANSITIONS ───────────────────────────────────────
 
-    _showWelcomeScreen() {
+    _hideLoadingScreen() {
         const loading = document.getElementById('loading-screen');
-        loading.classList.add('fade-out');
-        loading.addEventListener('transitionend', () => loading.remove(), { once: true });
+        if (loading) {
+            loading.classList.add('fade-out');
+            loading.addEventListener('transitionend', () => loading.remove(), { once: true });
+        }
+    }
+
+    _showWelcomeScreen() {
+        this._hideLoadingScreen();
         setVisible('welcome-screen', true);
     }
 
     _showApp() {
+        this._hideLoadingScreen();
         setVisible('welcome-screen', false);
         setVisible('app', true);
         this._updateStatusBar();
@@ -176,6 +191,65 @@ class FlashMindApp {
         this._updateHeaderFileName();
         this._updateStatusBar();
         this._updateDirtyIndicator();
+
+        // Check for interrupted study session (F5 recovery)
+        this._checkCachedStudySession();
+    }
+
+    /**
+     * Detect and offer to restore an interrupted study session.
+     * Uses localStorage snapshot saved by StudyMode.
+     */
+    _checkCachedStudySession() {
+        const cached = StudyMode.getCachedSession();
+        if (!cached) return;
+
+        const ago = Math.round((Date.now() - cached.savedAt) / 60000);
+        const agoText = ago < 1 ? 'vừa xong' : `${ago} phút trước`;
+        const progress = `${cached.stats?.total || 0} thẻ đã học`;
+
+        // Show a custom restore banner
+        const banner = document.createElement('div');
+        banner.id = 'study-restore-banner';
+        banner.className = 'study-restore-banner';
+        banner.innerHTML = `
+            <div class="restore-banner-content">
+                <span class="restore-icon">📚</span>
+                <div class="restore-info">
+                    <strong>Phiên học dở: ${cached.deckName || 'Không rõ'}</strong>
+                    <span class="restore-meta">${progress} · ${agoText}</span>
+                </div>
+                <div class="restore-actions">
+                    <button class="btn btn-sm btn-primary" id="btn-restore-yes">▶ Tiếp tục</button>
+                    <button class="btn btn-sm btn-ghost" id="btn-restore-no">Bỏ qua</button>
+                </div>
+            </div>
+        `;
+        document.getElementById('main-content')?.prepend(banner);
+
+        // Auto-dismiss after 15 seconds
+        const autoDismiss = setTimeout(() => {
+            banner.remove();
+        }, 15000);
+
+        document.getElementById('btn-restore-yes')?.addEventListener('click', () => {
+            clearTimeout(autoDismiss);
+            banner.remove();
+            const restored = studyMode.restoreSession();
+            if (restored) {
+                toast('✅ Đã khôi phục phiên học!', 'success');
+            } else {
+                toast('Không thể khôi phục — dữ liệu đã thay đổi', 'warning');
+            }
+        });
+
+        document.getElementById('btn-restore-no')?.addEventListener('click', () => {
+            clearTimeout(autoDismiss);
+            banner.remove();
+            // Clear the stale cache
+            try { localStorage.removeItem('fm_study_session'); } catch (_) {}
+            toast('Phiên học dở đã bị xóa', 'info');
+        });
     }
 
     _updateHeaderFileName() {
@@ -441,8 +515,8 @@ class FlashMindApp {
             }
         });
 
-        // "Ôn tập ngay" due banner button
-        document.getElementById('btn-study-due')?.addEventListener('click', () => {
+        // "Ôn tập ngay" due banner & "Học ngay" header button
+        const handleStudyClick = () => {
             const deckId   = this.sidebar?.currentDeckId;
             const deckName = this.sidebar?.currentDeckName;
             if (deckId) {
@@ -450,7 +524,9 @@ class FlashMindApp {
             } else {
                 toast('Vui lòng chọn một deck trước', 'warning');
             }
-        });
+        };
+        document.getElementById('btn-study-due')?.addEventListener('click', handleStudyClick);
+        document.getElementById('btn-study-now')?.addEventListener('click', handleStudyClick);
 
         // Stats nav
         document.getElementById('btn-stats-nav')?.addEventListener('click', () => {

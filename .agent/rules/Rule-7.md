@@ -37,3 +37,8 @@ description: Context Persistence — ghi đúng tầng, đúng scope sau mỗi t
 - History of Change: nhật ký thay đổi logic lớn.
 
 4. CD Orchestration: Sau khi người dùng duyệt, Agent kích hoạt lệnh deploy (hoặc push code để trigger CD).
+
+5. LOB Brain — BẮT BUỘC TUYỆT ĐỐI (không ngoại lệ):
+   - `brain_store`: Ghi project context — tóm tắt việc đã làm, quyết định, kết quả. Gọi sau MỌI session dù không code.
+   - `brain_log_session`: Ghi conversation history — tiêu đề session + turns tóm gọn. Gọi sau MỌI session không ngoại lệ.
+   - Lý do: Các agent trên máy khác đang đọc brain qua SSE liên tục — nếu không ghi, họ sẽ làm việc với context lỗi thời.

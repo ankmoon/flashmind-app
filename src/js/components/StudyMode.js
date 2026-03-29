@@ -22,6 +22,9 @@ import { bus, renderMarkdown, toast } from '../utils.js';
 // SM-2 rating mapping
 const RATING_MAP = { 1: 1, 2: 2, 3: 3, 4: 5 };
 
+// localStorage key for session persistence
+const CACHE_KEY = 'fm_study_session';
+
 // Button labels + emoji
 const RATING_META = {
     1: { emoji: '😰', label: 'Quên',  color: 'again' },
@@ -112,11 +115,16 @@ export class StudyMode {
         this._updateBackBtn();
 
         this._showCard(this._queue[0]);
+
+        // Persist session to cache
+        this._saveSessionCache();
     }
 
     close() {
         this._getEl('study-overlay').classList.add('hidden');
         document.body.style.overflow = '';
+
+        // Cache giữ lại — user có thể quay lại tiếp tục sau
 
         // Notify app to refresh stats
         bus.emit('card:changed', { deckId: this._deckId });
@@ -153,6 +161,9 @@ export class StudyMode {
 
         // Preview intervals on rating buttons
         this._renderIntervalPreviews(card);
+
+        // Persist current position to cache
+        this._saveSessionCache();
     }
 
     // [F5] Flip / Unflip
@@ -236,6 +247,9 @@ export class StudyMode {
 
         // [F7] Push current card to history before advancing
         this._history.push(card);
+
+        // Persist stats to cache after each rating
+        this._saveSessionCache();
 
         // Short delay then advance
         setTimeout(() => this._advance(), 350);
@@ -347,6 +361,9 @@ export class StudyMode {
 
         // Progress to 100%
         this._getEl('study-progress-fill').style.width = '100%';
+
+        // Clear session cache — session completed
+        this._clearSessionCache();
 
         // Notify app to auto-save SRS progress
         bus.emit('study:finished', { stats: this._stats });
@@ -481,6 +498,113 @@ export class StudyMode {
                 this.rate(parseInt(e.key));
             }
         });
+    }
+
+    // ─── SESSION CACHE (localStorage) ────────────────────────────
+
+    /**
+     * Save current session state to localStorage.
+     * Stores card IDs (not full objects) to keep payload small.
+     */
+    _saveSessionCache() {
+        try {
+            const snapshot = {
+                deckId:      this._deckId,
+                deckName:    this._deckName,
+                skipSrs:     this._skipSrs,
+                queueIds:    this._queue.map(c => c.id),
+                retryIds:    this._retryQueue.map(c => c.id),
+                historyIds:  this._history.map(c => c.id),
+                currentIdx:  this._currentIdx,
+                stats:       { ...this._stats },
+                savedAt:     Date.now(),
+            };
+            localStorage.setItem(CACHE_KEY, JSON.stringify(snapshot));
+        } catch (e) {
+            // localStorage full or unavailable — silently ignore
+            console.warn('[StudyMode] Cache save failed:', e.message);
+        }
+    }
+
+    /**
+     * Clear session cache.
+     */
+    _clearSessionCache() {
+        try { localStorage.removeItem(CACHE_KEY); } catch (_) { /* noop */ }
+    }
+
+    /**
+     * Check if a cached session exists.
+     * @returns {{ deckId, deckName, currentIdx, stats, savedAt } | null}
+     */
+    static getCachedSession() {
+        try {
+            const raw = localStorage.getItem(CACHE_KEY);
+            if (!raw) return null;
+            const data = JSON.parse(raw);
+
+            // Expire cache after 24 hours to avoid stale sessions
+            const MAX_AGE_MS = 24 * 60 * 60 * 1000;
+            if (Date.now() - data.savedAt > MAX_AGE_MS) {
+                localStorage.removeItem(CACHE_KEY);
+                return null;
+            }
+
+            return data;
+        } catch (_) {
+            return null;
+        }
+    }
+
+    /**
+     * Restore a cached session. Re-queries cards from DB by ID for freshness.
+     * @returns {boolean} true if restored successfully
+     */
+    restoreSession() {
+        const cached = StudyMode.getCachedSession();
+        if (!cached) return false;
+
+        // Re-query cards from DB by ID to get latest SRS data
+        const rehydrate = (ids) => ids
+            .map(id => cardManager.getCard(id))
+            .filter(Boolean);
+
+        const queue    = rehydrate(cached.queueIds || []);
+        const retryQ   = rehydrate(cached.retryIds || []);
+        const history  = rehydrate(cached.historyIds || []);
+
+        // Validate: must still have cards remaining after current index
+        if (queue.length === 0 || cached.currentIdx >= queue.length) {
+            this._clearSessionCache();
+            return false;
+        }
+
+        // Restore internal state
+        this._deckId     = cached.deckId;
+        this._deckName   = cached.deckName;
+        this._skipSrs    = cached.skipSrs;
+        this._queue      = queue;
+        this._retryQueue = retryQ;
+        this._history    = history;
+        this._currentIdx = cached.currentIdx;
+        this._isFinished = false;
+        this._stats      = cached.stats || { again: 0, hard: 0, good: 0, easy: 0, total: 0 };
+
+        // Reset finish screen
+        this._resetFinishScreen();
+        this._updateHeaderStats();
+
+        // Show overlay
+        this._getEl('study-overlay').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        const nameEl = this._getEl('study-deck-name');
+        if (nameEl) nameEl.textContent = this._deckName || 'Học tập';
+
+        this._updateBackBtn();
+        this._showCard(this._queue[this._currentIdx]);
+
+        return true;
     }
 
     // ─── HELPERS ─────────────────────────────────────────────────

@@ -8,7 +8,7 @@ description: Quy trình thiết kế Game UI/UX — HUD, menu, inventory, shop, 
 
 ## Chuẩn bị
 
-1. Đọc skill: `D:\My office\.agent\skills\game-ui-ux-agent\SKILL.md`
+1. Đọc skill: `D:\My office\.agent\agents\game-ui-ux-agent.md`
 2. Đọc GDD tại `{project}/docs/gdd.md` để hiểu game type và mechanics
 3. Nắm platform target: PC / Mobile / Console (ảnh hưởng touch targets và layout)
 

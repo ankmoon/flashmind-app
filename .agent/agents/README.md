@@ -1,7 +1,7 @@
 # Antigravity AI Kit — Agents
 
-> **Purpose**: Specialized sub-agents for task delegation
-> **Count**: 15 Core Agents
+> **Purpose**: Specialized agents for task delegation & domain expertise
+> **Count**: 27 Agents (17 custom + 10 utility)
 
 ---
 
@@ -10,120 +10,85 @@
 Agents are specialized personas that handle delegated tasks with focused expertise. Each agent has:
 
 - **Defined responsibilities** — What it handles
-- **Specific tools** — What it can use
+- **Quy trình làm việc** — Step-by-step process
 - **Constraints** — What it cannot do
+
+**Trigger mechanism**: Orchestrator (`/orchestrate`) auto-routes via keyword matching → reads agent `.md` → executes.
 
 ---
 
 ## Agent Roster
 
-### Core Development Agents
+### 🏗️ Development Agents
 
-| Agent                       | File                      | Purpose                         |
-| :-------------------------- | :------------------------ | :------------------------------ |
-| 📋 **Planner**              | `planner.md`              | Feature implementation planning |
-| 🏛️ **Architect**            | `architect.md`            | System design decisions         |
-| 🔍 **Code Reviewer**        | `code-reviewer.md`        | Quality & security review       |
-| 🧪 **TDD Guide**            | `tdd-guide.md`            | Test-driven development         |
-| 🔧 **Build Error Resolver** | `build-error-resolver.md` | Rapid build fixes               |
+| Agent | File | Purpose |
+|---|---|---|
+| 📋 **BA Agent** | `ba-agent.md` | Phân tích nghiệp vụ, PRD, bẻ task |
+| 🏛️ **SA Agent** | `sa-agent.md` | Kiến trúc, DB Schema, API Contract |
+| 🎨 **Design Agent** | `design-agent.md` | UI/UX Mockup, Design Spec |
+| 💻 **FE Agent** | `fe-agent.md` | Frontend development |
+| ⚙️ **BE Agent** | `be-agent.md` | Backend development |
+| 🚀 **DevOps Agent** | `devops-agent.md` | CI/CD, deployment, Docker |
+| 🧪 **QC Agent** | `qc-agent.md` | Testing, QA, bug analysis |
 
-### Quality & Security Agents
+### 📣 Marketing & Content Agents
 
-| Agent                        | File                       | Purpose                      |
-| :--------------------------- | :------------------------- | :--------------------------- |
-| 🔐 **Security Reviewer**     | `security-reviewer.md`     | Vulnerability analysis       |
-| 🎭 **E2E Runner**            | `e2e-runner.md`            | End-to-end testing           |
-| ⚡ **Performance Optimizer** | `performance-optimizer.md` | Core Web Vitals optimization |
+| Agent | File | Purpose |
+|---|---|---|
+| 📢 **Marketing Agent** | `marketing-agent.md` | Content strategy, social media, copywriting |
+| ✍️ **Content Writer** | `content-writer-agent.md` | Blog, Facebook content |
+| 🔬 **Research Agent** | `research-agent.md` | Research & deep analysis |
 
-### Infrastructure Agents
+### 🎮 Game Agents
 
-| Agent                     | File                    | Purpose                       |
-| :------------------------ | :---------------------- | :---------------------------- |
-| 📱 **Mobile Developer**   | `mobile-developer.md`   | React Native/Expo development |
-| 🗄️ **Database Architect** | `database-architect.md` | Schema design, queries        |
-| 🚀 **DevOps Engineer**    | `devops-engineer.md`    | CI/CD, deployment             |
+| Agent | File | Purpose |
+|---|---|---|
+| 🎲 **Game Designer** | `game-designer-agent.md` | GDD, mechanics, balancing |
+| 🎨 **Game Artist** | `game-artist-agent.md` | Visual assets, art direction |
+| 🖥️ **Game UI/UX** | `game-ui-ux-agent.md` | HUD, menus, game interface |
+| 🤖 **Godot Developer** | `godot-developer-agent.md` | Godot 4 / GDScript |
 
-### Maintenance & Discovery Agents
+### 🎓 Teaching Agents (TankBAClass)
 
-| Agent                   | File                  | Purpose            |
-| :---------------------- | :-------------------- | :----------------- |
-| 🧹 **Refactor Cleaner** | `refactor-cleaner.md` | Dead code cleanup  |
-| 📚 **Doc Updater**      | `doc-updater.md`      | Documentation sync |
-| 🧠 **Knowledge Agent**  | `knowledge-agent.md`  | RAG retrieval      |
-| 🔭 **Explorer Agent**   | `explorer-agent.md`   | Codebase discovery |
+| Agent | File | Purpose |
+|---|---|---|
+| 👨‍🏫 **BA Instructor** | `ba-instructor-agent.md` | Giảng dạy, warm-up, Q&A |
+| 📝 **Assignment Grader** | `assignment-grader-agent.md` | Chấm bài, feedback |
+| 📚 **Course Builder** | `course-builder-agent.md` | Xây dựng khóa học |
 
----
+### 🔧 Utility Agents (from Antigravity Kit)
 
-## Agent Selection Matrix
-
-The `intelligent-routing` skill automatically selects agents based on request keywords:
-
-| Intent       | Keywords                            | Agent(s)                  |
-| ------------ | ----------------------------------- | ------------------------- |
-| Architecture | "design", "structure", "pattern"    | `architect`               |
-| Planning     | "plan", "roadmap", "sprint"         | `planner`                 |
-| Security     | "security", "vulnerability", "auth" | `security-reviewer`       |
-| Testing      | "test", "coverage", "e2e"           | `tdd-guide`, `e2e-runner` |
-| Mobile       | "mobile", "react native", "expo"    | `mobile-developer`        |
-| Database     | "schema", "migration", "query"      | `database-architect`      |
-| Deployment   | "deploy", "CI/CD", "production"     | `devops-engineer`         |
-| Performance  | "slow", "optimize", "performance"   | `performance-optimizer`   |
-| Discovery    | "explore", "map", "understand"      | `explorer-agent`          |
-
----
-
-## How to Use Agents
-
-Agents are invoked automatically by the orchestrator based on context. You can also explicitly request them:
-
-```
-Use the architect agent to design the database schema.
-```
-
-```
-Delegate this security review to the security-reviewer agent.
-```
+| Agent | File | Purpose |
+|---|---|---|
+| 🔐 **Security Reviewer** | `security-reviewer.md` | Vulnerability analysis |
+| 🧪 **TDD Guide** | `tdd-guide.md` | Test-driven development |
+| 🎭 **E2E Runner** | `e2e-runner.md` | End-to-end testing |
+| ⚡ **Performance Optimizer** | `performance-optimizer.md` | Core Web Vitals |
+| 📱 **Mobile Developer** | `mobile-developer.md` | React Native/Expo |
+| 🔧 **Build Error Resolver** | `build-error-resolver.md` | Rapid build fixes |
+| 🧹 **Refactor Cleaner** | `refactor-cleaner.md` | Dead code cleanup |
+| 📚 **Doc Updater** | `doc-updater.md` | Documentation sync |
+| 🧠 **Knowledge Agent** | `knowledge-agent.md` | RAG retrieval |
+| 🔭 **Explorer Agent** | `explorer-agent.md` | Codebase discovery |
 
 ---
 
-## Agent Specification Format
+## How to Use
 
-Each agent file follows this structure:
+Agents are invoked automatically by `/orchestrate` based on keyword matching. You can also request them explicitly:
 
-```markdown
-# [Agent Name]
+```
+/orchestrate tôi cần viết blog về kỹ năng BA
+→ Route: Content Writer Agent + WF-Content-Writing
 
-> **Platform**: Antigravity AI Kit
-> **Purpose**: [Brief description]
-
----
-
-## Identity
-
-[Agent persona and core responsibility]
-
-## Capabilities
-
-- [What the agent can do]
-
-## Constraints
-
-- [What the agent cannot do]
-
-## Workflow
-
-1. [Step 1]
-2. [Step 2]
+/orchestrate fix lỗi API trả về 500
+→ Route: QC Agent + WF-Bug-Fixing
 ```
 
 ---
 
-## Extending Agents
-
-To add a custom agent:
+## Adding New Agents
 
 1. Create a new `.md` file in this directory
-2. Follow the specification format above
-3. Reference it in your workflows
-
-Custom agents inherit the Operating Constraints from `rules.md`.
+2. Include: Identity, Capabilities, Workflow, Constraints
+3. Add routing keywords to `orchestrate.md`

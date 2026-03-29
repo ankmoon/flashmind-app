@@ -8,7 +8,7 @@ description: Quy trình nghiên cứu chuyên sâu — phân rã vấn đề, đ
 
 ## Chuẩn bị
 
-1. Đọc skill file: `D:\My office\.agent\skills\research-agent\SKILL.md`
+1. Đọc skill file: `D:\My office\.agent\agents\research-agent.md`
 2. Đọc `D:\My office\system_context.md` nếu research liên quan đến dự án cụ thể
 
 ---

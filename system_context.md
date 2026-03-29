@@ -166,3 +166,4 @@ app.js
 | 2026-03-18 | Deploy Vercel, setup Supabase schema cho users/license |
 | 2026-03-19 | Tạo system_context.md, đọc lại toàn bộ context để chuẩn bị tiếp tục |
 | 2026-03-19 | **User Feedback Sprint**: Fix 5 bugs StudyMode (unflip, back-btn, off-by-one, stale finish, hide show-answer); Rename SRS → tiếng Việt thân thiện; PdfImport thêm Edit/Delete rows inline; cards.css fix title cutoff; Light/Dark mode toggle (localStorage-based); |
+| 29/03/2026 | QC Agent | Sửa lỗi `Manifest: 404`, sửa lỗi nút `Học ngay`. Thêm Storage Persistance (`localStorage`) ghi nhớ phiên học dở. Thêm IDB Persistance (`IndexedDB`) tự động load file cuối cùng mà không cần người dùng chọn file (`fileManager.js`, `idbStore.js`). Giao diện tự động hiển thị Banner phục hồi mà không cần qua màn hình Welcome. |

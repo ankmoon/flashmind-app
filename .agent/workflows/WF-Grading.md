@@ -8,7 +8,7 @@ description: Quy trình chấm bài học viên TankBAClass — rubric-based, fe
 
 ## Chuẩn bị
 
-1. Đọc skill: `D:\My office\.agent\skills\assignment-grader-agent\SKILL.md`
+1. Đọc skill: `D:\My office\.agent\agents\assignment-grader-agent.md`
 
 ---
 

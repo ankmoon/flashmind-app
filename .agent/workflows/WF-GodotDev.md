@@ -8,7 +8,7 @@ description: Quy trình phát triển game Godot 4 — từ setup project đến
 
 ## Chuẩn bị
 
-1. Đọc skill: `D:\My office\.agent\skills\godot-developer-agent\SKILL.md`
+1. Đọc skill: `D:\My office\.agent\agents\godot-developer-agent.md`
 2. Đọc GDD tại `{project}/docs/gdd.md` (nếu có)
 3. Đọc `D:\My office\skills\skills\godot-gdscript-patterns\SKILL.md` (community patterns)
 
