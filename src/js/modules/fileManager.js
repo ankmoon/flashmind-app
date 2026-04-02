@@ -102,6 +102,23 @@ export class FileManager {
     }
 
     /**
+     * Load a .flashcard file from a URL.
+     * @param {string} url 
+     * @param {string} fileName 
+     */
+    async loadFromUrl(url, fileName) {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Could not fetch pack: ${response.statusText}`);
+        
+        const arrayBuffer = await response.arrayBuffer();
+        this.fileHandle = null;
+        this.fileName   = fileName;
+        
+        await this._loadFromBuffer(arrayBuffer);
+        return true;
+    }
+
+    /**
      * Load database from a file handle.
      * @param {FileSystemFileHandle|{file: File, name: string}} handle
      */
@@ -119,6 +136,14 @@ export class FileManager {
         }
 
         const arrayBuffer = await file.arrayBuffer();
+        await this._loadFromBuffer(arrayBuffer);
+    }
+
+    /**
+     * Common logic to load from ArrayBuffer
+     * @param {ArrayBuffer} arrayBuffer 
+     */
+    async _loadFromBuffer(arrayBuffer) {
         const zip = await JSZip.loadAsync(arrayBuffer);
 
         // Extract meta.json

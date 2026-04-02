@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="src/css/pdf-import.css" />
   <link rel="stylesheet" href="src/css/quiz.css" />
   <link rel="stylesheet" href="src/css/vocab.css" />
+  <link rel="stylesheet" href="src/css/packs.css" />
 
   <!-- PWA -->
   <link rel="manifest" href="manifest.json" />
@@ -69,6 +70,50 @@
         <div class="feature-chip"><span>💾</span> Lưu cục bộ</div>
         <div class="feature-chip"><span>📝</span> Markdown</div>
         <div class="feature-chip"><span>📊</span> Thống kê</div>
+      </div>
+
+      <!-- Starter Packs -->
+      <div class="welcome-section packs-section">
+        <h3><i class="fas fa-magic"></i> Starter Packs</h3>
+        <p class="section-desc">Quickly import high-quality flashcard datasets to start learning immediately.</p>
+        <div class="packs-grid">
+          <!-- HSK Series -->
+          <div class="pack-card" data-pack="data/packs/HSK_Level_6.flashcard" data-category="Chinese">
+            <div class="pack-icon hsk-icon">HSK</div>
+            <div class="pack-info">
+              <h4>HSK 1-6 Full</h4>
+              <p>5000+ Words • All Levels</p>
+              <span class="lang-tag">Chinese</span>
+            </div>
+          </div>
+          <!-- JLPT Series -->
+          <div class="pack-card" data-pack="data/packs/JLPT_N1.flashcard" data-category="Japanese">
+            <div class="pack-icon jlpt-icon">JLPT</div>
+            <div class="pack-info">
+              <h4>JLPT N1-N5 Full</h4>
+              <p>8000+ Words • All Levels</p>
+              <span class="lang-tag">Japanese</span>
+            </div>
+          </div>
+          <!-- Oxford 5000 -->
+          <div class="pack-card" data-pack="data/packs/Oxford_5000.flashcard" data-category="English">
+            <div class="pack-icon oxford-icon">OX</div>
+            <div class="pack-info">
+              <h4>Oxford 5000</h4>
+              <p>5000 Core Words</p>
+              <span class="lang-tag">English</span>
+            </div>
+          </div>
+          <!-- TOPIK -->
+          <div class="pack-card" data-pack="data/packs/TOPIK_Vocabulary.flashcard" data-category="Korean">
+            <div class="pack-icon topik-icon">TOPIK</div>
+            <div class="pack-info">
+              <h4>TOPIK I & II</h4>
+              <p>6000+ Vocabulary</p>
+              <span class="lang-tag">Korean</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -698,5 +743,14 @@ Hỗ trợ **Markdown**, _italic_, `code`, [links](url)"></textarea>
 
   <!-- App Entry Point -->
   <script type="module" src="src/js/app.js"></script>
+    <!-- UI Components -->
+    <div id="notification-toast" class="toast"></div>
+    <div id="app-loader" class="app-loader">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <p id="loader-message">Loading...</p>
+        </div>
+    </div>
+
 </body>
 </html>
