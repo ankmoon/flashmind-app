@@ -457,9 +457,45 @@ Hỗ trợ **Markdown**, _italic_, `code`"></textarea>
             <textarea id="card-back-input" class="editor-textarea" placeholder="Nhập đáp án...
 Hỗ trợ **Markdown**, _italic_, `code`, [links](url)"></textarea>
           </div>
-          <div class="form-group form-group-inline">
-            <label class="form-label">Tags</label>
-            <input type="text" id="card-tags-input" class="form-input" placeholder="tag1, tag2, tag3" />
+          <div class="form-row">
+            <div class="form-group" style="flex:2;">
+              <label class="form-label">Tags</label>
+              <input type="text" id="card-tags-input" class="form-input" placeholder="Từ vựng, hsk, topik..." />
+            </div>
+            <div class="form-group" style="flex:1;">
+              <label class="form-label">Độ khó</label>
+              <select id="card-diff-input" class="form-select">
+                <option value="">-- Trống --</option>
+                <optgroup label="HSK">
+                  <option value="HSK 1">HSK 1</option>
+                  <option value="HSK 2">HSK 2</option>
+                  <option value="HSK 3">HSK 3</option>
+                  <option value="HSK 4">HSK 4</option>
+                  <option value="HSK 5">HSK 5</option>
+                  <option value="HSK 6">HSK 6</option>
+                </optgroup>
+                <optgroup label="TOPIK">
+                  <option value="TOPIK 1-2">TOPIK 1-2 (Sơ cấp)</option>
+                  <option value="TOPIK 3-4">TOPIK 3-4 (Trung cấp)</option>
+                  <option value="TOPIK 5-6">TOPIK 5-6 (Cao cấp)</option>
+                </optgroup>
+                <optgroup label="JLPT">
+                  <option value="N5">N5</option>
+                  <option value="N4">N4</option>
+                  <option value="N3">N3</option>
+                  <option value="N2">N2</option>
+                  <option value="N1">N1</option>
+                </optgroup>
+                <optgroup label="Khác">
+                  <option value="A1">A1</option>
+                  <option value="A2">A2</option>
+                  <option value="B1">B1</option>
+                  <option value="B2">B2</option>
+                  <option value="C1">C1</option>
+                  <option value="C2">C2</option>
+                </optgroup>
+              </select>
+            </div>
           </div>
         </div>
         <div class="editor-col preview-col">
@@ -730,7 +766,7 @@ Hỗ trợ **Markdown**, _italic_, `code`, [links](url)"></textarea>
                 <p class="text-muted" style="margin-bottom: 1.5rem; text-align: center;">Quickly import high-quality flashcard datasets to start learning immediately.</p>
                 <div class="packs-grid" id="modal-packs-grid">
                     <!-- HSK Series -->
-                    <div class="pack-card" data-pack="data/packs/HSK_Level_6.flashcard" data-name="HSK All Levels" data-category="Chinese">
+                    <div class="pack-card" data-pack="data/packs/HSK_Full.flashcard" data-name="HSK All Levels" data-category="Chinese">
                         <div class="pack-icon hsk-icon">HSK</div>
                         <div class="pack-info">
                             <h4>HSK 1-6 Full</h4>

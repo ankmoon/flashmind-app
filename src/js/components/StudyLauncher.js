@@ -34,6 +34,7 @@ export class StudyLauncher {
         this._mode     = 'review';
         this._levels   = ['new', 'due'];
         this._limit    = 20;
+        this._diffTags = []; // Array of string tags (e.g., 'diff:TOPIK 1-2')
         this._overlay  = null;
     }
 
@@ -53,8 +54,13 @@ export class StudyLauncher {
         this._mode     = 'review';
         this._levels   = ['new', 'due'];
         this._limit    = 20;
+        this._diffTags = [];
 
         this._overlay.classList.remove('hidden');
+        
+        // Load tags for this deck
+        this._availableTags = cardManager.getTagsInDeck(this._deckId).filter(t => t.startsWith('diff:'));
+        
         this._updateUI();
         this._updateCardCount();
     }
@@ -96,14 +102,22 @@ export class StudyLauncher {
             <div class="sl-levels" id="sl-levels">
               ${LEVELS.map(l => `
                 <label class="sl-level-chip" data-level="${l.key}" style="--chip-color:${l.color}">
-                  <input type="checkbox" ${l.key !== 'learned' ? 'checked' : ''} />
+                  <input type="checkbox" ${this._levels.includes(l.key) ? 'checked' : ''} />
                   <span class="sl-chip-dot" style="background:${l.color}"></span>
-                  ${l.label}
+                  <span class="sl-chip-label">${l.label}</span>
                 </label>
               `).join('')}
             </div>
 
-            <!-- Card count -->
+            <!-- Diff Tag Filter -->
+            <div id="sl-tags-section" style="display: none;">
+              <div class="sl-section-label">Độ khó:</div>
+              <div class="sl-levels" id="sl-tags">
+                <!-- Injected in _updateUI -->
+              </div>
+            </div>
+
+            <!-- Limit selector -->
             <div class="sl-row">
               <div class="sl-section-label" style="margin:0">Số thẻ:</div>
               <div class="sl-limit-group" id="sl-limit-group">
@@ -117,7 +131,7 @@ export class StudyLauncher {
 
             <!-- Available count -->
             <div class="sl-available" id="sl-available">
-              Có <strong id="sl-card-count">0</strong> thẻ phù hợp
+              Có <strong id="sl-count-val">0</strong> thẻ phù hợp
             </div>
 
           </div>
@@ -157,6 +171,18 @@ export class StudyLauncher {
             this._updateCardCount();
         });
 
+        // Tag checkboxes
+        $('sl-tags').addEventListener('change', (e) => {
+            if (e.target.tagName !== 'INPUT') return;
+            const tag = e.target.closest('[data-tag]').dataset.tag;
+            if (e.target.checked) {
+               if(!this._diffTags.includes(tag)) this._diffTags.push(tag);
+            } else {
+               this._diffTags = this._diffTags.filter(t => t !== tag);
+            }
+            this._updateCardCount();
+        });
+
         // Limit buttons
         $('sl-limit-group').addEventListener('click', e => {
             const btn = e.target.closest('.sl-limit-btn');
@@ -174,7 +200,7 @@ export class StudyLauncher {
     // ── START SESSION ─────────────────────────────────────────────
     _start() {
         const limit   = this._limit || 9999;
-        const cards   = cardManager.getCardsByLevel(this._deckId, { levels: this._levels, limit });
+        const cards   = cardManager.getCardsByLevel(this._deckId, { levels: this._levels, limit, tags: this._diffTags });
 
         if (!cards.length) {
             toast('Không có thẻ nào phù hợp bộ lọc!', 'warning');
@@ -204,24 +230,52 @@ export class StudyLauncher {
 
     // ── UI HELPERS ────────────────────────────────────────────────
     _updateUI() {
+        const $ = id => document.getElementById(id);
         // Deck name
         document.getElementById('sl-deck-name').textContent = this._deckName || 'All decks';
 
         // Mode cards
-        document.querySelectorAll('.sl-mode-card').forEach(c => {
-            c.classList.toggle('active', c.dataset.mode === this._mode);
+        document.querySelectorAll('.sl-mode-card').forEach(card => {
+            card.className = `sl-mode-card ${card.dataset.mode === this._mode ? 'active' : ''}`;
         });
+        
+        // Tags rendering
+        const tagsSection = $('sl-tags-section');
+        const tagsContainer = $('sl-tags');
+        if (this._availableTags && this._availableTags.length > 0) {
+            tagsSection.style.display = 'block';
+            tagsContainer.innerHTML = this._availableTags.map(tag => {
+                const displayTag = tag.replace('diff:', '');
+                const isChecked = this._diffTags.includes(tag);
+                return `
+                <label class="sl-level-chip" data-tag="${tag}" style="--chip-color:#1e293b; background: var(--bg-hover)">
+                  <input type="checkbox" ${isChecked ? 'checked' : ''} />
+                  <span class="sl-chip-label" style="font-weight: 500">${displayTag}</span>
+                </label>
+                `;
+            }).join('');
+        } else {
+            tagsSection.style.display = 'none';
+        }
 
         this._updateCardCount();
     }
 
     _updateCardCount() {
-        const limit = this._limit || 9999;
-        const cards = cardManager.getCardsByLevel(this._deckId, { levels: this._levels, limit });
-        document.getElementById('sl-card-count').textContent = cards.length;
+        const $ = id => document.getElementById(id);
+        $('sl-start-btn').disabled = true;
+        $('sl-count-val').textContent = '...';
 
-        // Disable start if 0
-        document.getElementById('sl-start-btn').disabled = cards.length === 0;
+        // small defer logic to not block UI
+        setTimeout(() => {
+            const limit = this._limit || 9999;
+            const cards = cardManager.getCardsByLevel(this._deckId, { levels: this._levels, limit, tags: this._diffTags });
+            
+            $('sl-count-val').textContent = cards.length;
+
+            // Disable start if 0
+            $('sl-start-btn').disabled = cards.length === 0;
+        }, 0);
     }
 }
 

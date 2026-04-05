@@ -163,7 +163,7 @@ export class CardManager {
      * @param {{ levels?: string[], limit?: number }} opts
      *   levels: 'new' | 'due' | 'learned'
      */
-    getCardsByLevel(deckId, { levels = ['new', 'due', 'learned'], limit = 200 } = {}) {
+    getCardsByLevel(deckId, { levels = ['new', 'due', 'learned'], limit = 200, tags = null } = {}) {
         const now = Date.now();
         const conditions = [];
         if (levels.includes('new'))     conditions.push('cr.due_date = 0');
@@ -178,10 +178,34 @@ export class CardManager {
             JOIN card_reviews cr ON cr.card_id = c.id
             WHERE c.deck_id = ? AND (${conditions.join(' OR ')})
             ORDER BY c.created_at ASC
-            LIMIT ?
         `;
-        const cards = dbManager.query(sql, [deckId, limit]);
-        return cards.map(c => ({ ...c, tags: this._parseTags(c.tags) }));
+        
+        let allCards = dbManager.query(sql, [deckId]);
+        let parsedCards = allCards.map(c => ({ ...c, tags: this._parseTags(c.tags) }));
+
+        if (tags && tags.length > 0) {
+            parsedCards = parsedCards.filter(c => c.tags.some(t => tags.includes(t)));
+        }
+
+        if (limit && limit > 0 && limit !== 9999) {
+            parsedCards = parsedCards.slice(0, limit);
+        }
+
+        return parsedCards;
+    }
+
+    /**
+     * Get all unique tags for a deck
+     * @param {string} deckId
+     */
+    getTagsInDeck(deckId) {
+        const cards = dbManager.query('SELECT tags FROM cards WHERE deck_id = ?', [deckId]);
+        const allTags = new Set();
+        for (const c of cards) {
+            const parsed = this._parseTags(c.tags);
+            parsed.forEach(t => allTags.add(t));
+        }
+        return Array.from(allTags).sort();
     }
 
     /**
