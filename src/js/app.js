@@ -21,6 +21,7 @@ import { statistics }  from './components/Statistics.js';
 import { pdfImport }   from './components/PdfImport.js';
 import { settings }    from './components/Settings.js';
 import { vocabList }   from './components/VocabList.js';
+import { speechService } from './modules/speech.js';
 
 import {
     bus, toast, openModal, closeModal,
@@ -75,6 +76,8 @@ class FlashMindApp {
             this._bindGlobalEvents();
             this._bindFileEvents();
             this._bindKeyboard();
+            this._bindStarterPacks();
+            this._initSpeechInterceptor();
 
             // Phase 4: Done
             this._setLoadingStatus('Sẵn sàng! ✨', 100);
@@ -454,6 +457,9 @@ class FlashMindApp {
             });
         });
 
+        // [New] Starter Packs (Sidebar Access)
+        this._bindStarterPacks();
+
         // Card delete confirmation
         bus.on('card:delete', card => {
             document.getElementById('confirm-message').textContent =
@@ -541,6 +547,57 @@ class FlashMindApp {
         });
     }
 
+    /**
+     * Logic for the "Starter Packs" modal in the sidebar.
+     * Allows returning users to import pre-made datasets.
+     */
+    _bindStarterPacks() {
+        const btnNav = document.getElementById('btn-packs-nav');
+        const modal  = document.getElementById('modal-packs');
+        if (!btnNav || !modal) return;
+
+        // Open modal
+        btnNav.addEventListener('click', () => {
+            openModal('modal-packs');
+        });
+
+        // Ensure close button works reliably
+        const closeBtn = document.getElementById('btn-close-packs');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                closeModal('modal-packs');
+            });
+        }
+
+        // Handle pack selection (event delegation)
+        const packsGrid = modal.querySelector('.packs-grid');
+        if (packsGrid) {
+            packsGrid.addEventListener('click', async (e) => {
+                const card = e.target.closest('.pack-card');
+                if (!card) return;
+
+                const url  = card.dataset.pack;
+                const name = card.dataset.name || 'Starter Pack';
+
+                if (!url) return;
+
+                try {
+                    toast(`⌛ Đang tải dữ liệu: ${name}...`, 'info');
+                    const success = await fileManager.loadFromUrl(url, name);
+                    
+                    if (success) {
+                        this._onFileLoaded();
+                        closeModal('modal-packs');
+                        toast(`✅ Đã nhập thành công: ${name}`, 'success');
+                    }
+                } catch (err) {
+                    console.error('[App] Starter pack import error:', err);
+                    toast(`❌ Lỗi khi tải pack: ${err.message}`, 'error');
+                }
+            });
+        }
+    }
+
     _bindFileEvents() {
         // Dirty indicator update
         bus.on('card:changed', () => this._updateDirtyIndicator());
@@ -597,6 +654,53 @@ class FlashMindApp {
     }
 
     _sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    /**
+     * [F11] Global interceptor for speaker icons.
+     * Catches clicks on legacy Google TTS links and new native TTS buttons.
+     */
+    _initSpeechInterceptor() {
+        document.body.addEventListener('click', (e) => {
+            const target = e.target.closest('a[href*="translate.google.com"], .tts-icon, .tts-btn');
+            if (!target) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            let text = '';
+            let lang = 'en-US';
+
+            if (target.tagName === 'A') {
+                // Parse legacy Google Translate TTS URL
+                try {
+                    const url = new URL(target.href);
+                    text = url.searchParams.get('q') || '';
+                    lang = url.searchParams.get('tl') || 'en-US';
+                } catch (err) {
+                    console.warn('[SpeechInterceptor] Invalid URL:', target.href);
+                }
+            } else {
+                // New semantic format
+                text = target.dataset.text || target.textContent || '';
+                lang = target.dataset.lang || 'en-US';
+            }
+
+            if (text) {
+                // If there's a current card in study mode, try to use its tags for better voice selection
+                let tags = [lang];
+                if (this.studyMode && this.studyMode._currentCard) {
+                    const cardTags = this.studyMode._currentCard.tags;
+                    if (Array.isArray(cardTags)) tags = [...tags, ...cardTags];
+                }
+
+                speechService.speak(text, tags);
+                
+                // Visual feedback
+                target.classList.add('tts-playing');
+                setTimeout(() => target.classList.remove('tts-playing'), 600);
+            }
+        });
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════

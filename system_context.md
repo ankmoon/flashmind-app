@@ -7,8 +7,9 @@
 
 ## 🎯 Mô tả dự án
 
-**FlashMind** — Ứng dụng flashcard premium, **local-first**, không cần backend/internet.
-- Kết hợp triết lý Quizlet + Anki + Obsidian.
+- **Starter Packs Integration**: Modal-based import system for curated flashcard datasets (HSK, JLPT, Oxford, TOPIK) accessible from the sidebar.
+- **Glassmorphic UI**: Premium design for modals and interactive elements.
+- **URL-based Import**: Support for fetching remote `.flashcard` files via `fileManager.loadFromUrl`.
 - Dữ liệu lưu cục bộ dưới dạng file `.flashcard` (ZIP chứa SQLite DB).
 - Deployed trên Vercel dưới dạng static site.
 
@@ -100,9 +101,11 @@ manifest.json                 ← PWA manifest
 
 - **Primary color**: `#7c5cfc` (Tím)
 - **Theme**: Dark mode mặc định (`data-theme="dark"`)
-- **Grid**: 8px base unit
-- **Font**: Inter (body), JetBrains Mono (code)
-- **Border radius**: 8px standard, 12px large
+
+## Repository & Deployment
+- **GitHub**: [ankmoon/flashmind-app](https://github.com/ankmoon/flashmind-app)
+- **Production**: [https://flashmind-psi.vercel.app/](https://flashmind-psi.vercel.app/)
+- **Deployment**: Manual via `npx vercel --prod --yes` (linked to GitHub for version control)
 - **Micro-animation**: `transition: all 0.2s ease`
 
 ---
@@ -164,7 +167,10 @@ app.js
 | 2026-03-16 | Khởi tạo dự án FlashMind, Phase 1 (DB + File I/O + Card CRUD) |
 | 2026-03-16 | Phase 2: StudyMode (SM-2 SRS), QuizMode, Statistics, PdfImport |
 | 2026-04-01 | Agent | Migrated 17 datasets to `data/packs/` |
-| 2026-04-02 | Agent | Implemented Starter Packs (Fetch-based import) |
+| 2026-04-02 | Antigravity | Integrated "Starter Packs" feature (Sidebar + Modal + URL Import). Added v2.1.0 announcement. |
+| 2026-03-31 | Antigravity | Refined UI aesthetics and accessibility. |
+| 2026-04-02 | Antigravity | Deploy thành công lên production `flashmind-psi.vercel.app`. |
 | 2026-03-19 | Tạo system_context.md, đọc lại toàn bộ context để chuẩn bị tiếp tục |
 | 2026-03-19 | **User Feedback Sprint**: Fix 5 bugs StudyMode (unflip, back-btn, off-by-one, stale finish, hide show-answer); Rename SRS → tiếng Việt thân thiện; PdfImport thêm Edit/Delete rows inline; cards.css fix title cutoff; Light/Dark mode toggle (localStorage-based); |
 | 29/03/2026 | QC Agent | Sửa lỗi `Manifest: 404`, sửa lỗi nút `Học ngay`. Thêm Storage Persistance (`localStorage`) ghi nhớ phiên học dở. Thêm IDB Persistance (`IndexedDB`) tự động load file cuối cùng mà không cần người dùng chọn file (`fileManager.js`, `idbStore.js`). Giao diện tự động hiển thị Banner phục hồi mà không cần qua màn hình Welcome. |
+| 2026-04-03 | Antigravity | Reset and started full re-translation of Oxford 5000 (context-aware v2) to ensure high-quality Vietnamese meanings. Added `complete_translation.py` with resumption support. |

@@ -2,11 +2,13 @@ import sqlite3, json, os, datetime, zipfile, uuid
 import pandas as pd
 from tqdm import tqdm
 
-def create_flashcard_file(name, lang_display, csv_path, short_lang, front_col, back_col, reading_col=None, tags=['starter']):
+def create_flashcard_file(name, lang_display, csv_path, short_lang, front_col, back_col, reading_col=None, tags=['starter'], output_dir='./'):
     """
     Creates a .flashcard (SQLite + ZIP) file from a CSV/TSV.
     """
-    db_path = f'./{name}_db.sqlite'
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
+    db_path = os.path.join(output_dir, f'{name}_db.sqlite')
     if os.path.exists(db_path): os.remove(db_path)
     
     conn = sqlite3.connect(db_path)
@@ -52,16 +54,21 @@ def create_flashcard_file(name, lang_display, csv_path, short_lang, front_col, b
         meaning_vn = get_val(back_col)
         reading = get_val(reading_col)
         
-        # Format back: Meaning (Vietnamese) + Reading (Furigana/Pinyin)
+        import re
+        if short_lang == "ko":
+            front = re.sub(r'\d+$', '', front).strip()
+            
+        if reading.lower() in ["nan", "none"]:
+            reading = ""
+        
+        # Format back: Meaning (Vietnamese) + Reading (Furigana/Pinyin/Hanja)
         back_content = meaning_vn
         if reading:
             back_content = f"{meaning_vn}<br><small style='color: #888;'>[{reading}]</small>"
         
-        # Audio URL generation (using Google TTS)
-        audio_url = f'https://translate.google.com/translate_tts?ie=UTF-8&q={front}&tl={short_lang}&client=tw-ob'
-        
-        # Combine back with audio icon
-        full_back = f"{back_content} <a href='{audio_url}' target='_blank' style='text-decoration:none; font-size:1.2em;'>🔊</a>"
+        # Audio icon generation (semantic format for SpeechService interception)
+        # Remove voice icon logic as per user request
+        full_back = f"{back_content}"
         
         card_tags = json.dumps(tags + [lang_display])
         
@@ -75,7 +82,7 @@ def create_flashcard_file(name, lang_display, csv_path, short_lang, front_col, b
     conn.close()
     
     # Zip it into .flashcard (ZIP folder containing database.sqlite + meta.json)
-    zip_path = f'./{name}.flashcard'
+    zip_path = os.path.join(output_dir, f'{name}.flashcard')
     with zipfile.ZipFile(zip_path, 'w') as zf:
         zf.write(db_path, 'database.sqlite')
         meta = {
@@ -93,7 +100,7 @@ def create_flashcard_file(name, lang_display, csv_path, short_lang, front_col, b
 
 def main():
     translated_dir = "d:/My office/Projects/Flashcard/data/translated"
-    output_dir = "d:/My office/Projects/Flashcard/" # Output flashcards to root
+    output_dir = "d:/My office/Projects/Flashcard/data/packs" # Output flashcards to data/packs
     
     # 1. HSK (Chinese -> Vietnamese)
     # File format: expression, reading, meaning_en, meaning_vi
@@ -101,7 +108,7 @@ def main():
         csv_path = os.path.join(translated_dir, f"hsk{i}_vn.csv")
         if os.path.exists(csv_path):
             create_flashcard_file(f"HSK_Level_{i}", "Tiếng Trung", csv_path, "zh-CN", 
-                                  front_col='expression', back_col='meaning_vi', reading_col='reading')
+                                  front_col='expression', back_col='meaning_vi', reading_col='reading', output_dir=output_dir)
 
     # 2. JLPT (Japanese -> Vietnamese)
     # File format: expression, reading, meaning, tags, guid, meaning_vi
@@ -109,21 +116,21 @@ def main():
         csv_path = os.path.join(translated_dir, f"jlpt_n{i}_vn.csv")
         if os.path.exists(csv_path):
             create_flashcard_file(f"JLPT_N{i}", "Tiếng Nhật", csv_path, "ja", 
-                                  front_col='expression', back_col='meaning_vi', reading_col='reading')
+                                  front_col='expression', back_col='meaning_vi', reading_col='reading', output_dir=output_dir)
 
     # 3. Oxford 5000 (English -> Vietnamese)
     # File format: Unnamed: 0, word, type, cefr, phon_br, phon_n_am, definition, example, uk, us, meaning_vi
     csv_path = os.path.join(translated_dir, "oxford5000_vn.csv")
     if os.path.exists(csv_path):
         create_flashcard_file("Oxford_5000", "Tiếng Anh", csv_path, "en", 
-                              front_col='word', back_col='meaning_vi')
+                              front_col='word', back_col='meaning_vi', output_dir=output_dir)
 
     # 4. TOPIK (Korean -> Vietnamese)
     # File format: rank,word,part_of_speech,hanja,explanation,nikl_level,topik_level,meaning_vi
     csv_path = os.path.join(translated_dir, "topik_vn.csv")
     if os.path.exists(csv_path):
         create_flashcard_file("TOPIK_Vocabulary", "Tiếng Hàn", csv_path, "ko", 
-                              front_col='word', back_col='meaning_vi', reading_col='hanja')
+                              front_col='word', back_col='meaning_vi', reading_col='hanja', output_dir=output_dir)
 
 if __name__ == "__main__":
     main()

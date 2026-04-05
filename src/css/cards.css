@@ -224,3 +224,69 @@
   opacity: 1;
   transform: scale(1.1) rotate(10deg);
 }
+
+/* ─── TTS ICON STYLING ─── */
+.tts-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 1.1em;
+  transition: all var(--t-normal);
+  vertical-align: middle;
+  margin-left: 6px;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  user-select: none;
+}
+
+.tts-icon:hover {
+  color: var(--primary);
+  background: var(--primary-muted);
+  border-color: var(--primary);
+  transform: scale(1.15);
+  box-shadow: 0 0 12px var(--primary-glow);
+}
+
+.tts-icon:active {
+  transform: scale(0.95);
+}
+
+/* Legacy <a> tags that are now intercepted */
+a[href*="translate.google.com"], .tts-link {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--secondary);
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all var(--t-fast);
+  cursor: pointer;
+}
+
+a[href*="translate.google.com"]:hover, .tts-link:hover {
+  background: var(--secondary-muted);
+  color: var(--secondary);
+  transform: translateY(-1px);
+}
+
+/* Playback Animation */
+.tts-playing {
+  animation: tts-pulse 1s infinite alternate;
+  color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  background: var(--primary-muted) !important;
+  box-shadow: 0 0 15px var(--primary-glow) !important;
+}
+
+@keyframes tts-pulse {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.1); opacity: 1; }
+}
+

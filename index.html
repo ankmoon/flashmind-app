@@ -72,49 +72,7 @@
         <div class="feature-chip"><span>📊</span> Thống kê</div>
       </div>
 
-      <!-- Starter Packs -->
-      <div class="welcome-section packs-section">
-        <h3><i class="fas fa-magic"></i> Starter Packs</h3>
-        <p class="section-desc">Quickly import high-quality flashcard datasets to start learning immediately.</p>
-        <div class="packs-grid">
-          <!-- HSK Series -->
-          <div class="pack-card" data-pack="data/packs/HSK_Level_6.flashcard" data-category="Chinese">
-            <div class="pack-icon hsk-icon">HSK</div>
-            <div class="pack-info">
-              <h4>HSK 1-6 Full</h4>
-              <p>5000+ Words • All Levels</p>
-              <span class="lang-tag">Chinese</span>
-            </div>
-          </div>
-          <!-- JLPT Series -->
-          <div class="pack-card" data-pack="data/packs/JLPT_N1.flashcard" data-category="Japanese">
-            <div class="pack-icon jlpt-icon">JLPT</div>
-            <div class="pack-info">
-              <h4>JLPT N1-N5 Full</h4>
-              <p>8000+ Words • All Levels</p>
-              <span class="lang-tag">Japanese</span>
-            </div>
-          </div>
-          <!-- Oxford 5000 -->
-          <div class="pack-card" data-pack="data/packs/Oxford_5000.flashcard" data-category="English">
-            <div class="pack-icon oxford-icon">OX</div>
-            <div class="pack-info">
-              <h4>Oxford 5000</h4>
-              <p>5000 Core Words</p>
-              <span class="lang-tag">English</span>
-            </div>
-          </div>
-          <!-- TOPIK -->
-          <div class="pack-card" data-pack="data/packs/TOPIK_Vocabulary.flashcard" data-category="Korean">
-            <div class="pack-icon topik-icon">TOPIK</div>
-            <div class="pack-info">
-              <h4>TOPIK I & II</h4>
-              <p>6000+ Vocabulary</p>
-              <span class="lang-tag">Korean</span>
-            </div>
-          </div>
-        </div>
-      </div>
+
     </div>
   </div>
 
@@ -220,6 +178,12 @@
 
           <!-- Sidebar Footer -->
           <div class="sidebar-footer">
+            <button id="btn-packs-nav" class="sidebar-nav-item" data-view="packs">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+              Starter Packs
+            </button>
             <button id="btn-stats-nav" class="sidebar-nav-item" data-view="stats">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
@@ -749,6 +713,60 @@ Hỗ trợ **Markdown**, _italic_, `code`, [links](url)"></textarea>
         <div class="loader-content">
             <div class="spinner"></div>
             <p id="loader-message">Loading...</p>
+        </div>
+    </div>
+    <!-- Starter Packs Modal -->
+    <div id="modal-packs" class="modal-overlay hidden">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h3 class="modal-title font-bold">Starter Packs</h3>
+                <button class="modal-close" id="btn-close-packs" data-close="modal-packs">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted" style="margin-bottom: 1.5rem; text-align: center;">Quickly import high-quality flashcard datasets to start learning immediately.</p>
+                <div class="packs-grid" id="modal-packs-grid">
+                    <!-- HSK Series -->
+                    <div class="pack-card" data-pack="data/packs/HSK_Level_6.flashcard" data-name="HSK All Levels" data-category="Chinese">
+                        <div class="pack-icon hsk-icon">HSK</div>
+                        <div class="pack-info">
+                            <h4>HSK 1-6 Full</h4>
+                            <p>5000+ Words • All Levels</p>
+                            <span class="lang-tag">Chinese</span>
+                        </div>
+                    </div>
+                    <!-- JLPT Series -->
+                    <div class="pack-card" data-pack="data/packs/JLPT_N1.flashcard" data-name="JLPT Full Pack" data-category="Japanese">
+                        <div class="pack-icon jlpt-icon">JLPT</div>
+                        <div class="pack-info">
+                            <h4>JLPT N1-N5 Full</h4>
+                            <p>8000+ Words • All Levels</p>
+                            <span class="lang-tag">Japanese</span>
+                        </div>
+                    </div>
+                    <!-- Oxford 5000 -->
+                    <div class="pack-card" data-pack="data/packs/Oxford_5000.flashcard" data-name="Oxford 5000" data-category="English">
+                        <div class="pack-icon oxford-icon">OX</div>
+                        <div class="pack-info">
+                            <h4>Oxford 5000</h4>
+                            <p>5000 Core Words</p>
+                            <span class="lang-tag">English</span>
+                        </div>
+                    </div>
+                    <!-- TOPIK -->
+                    <div class="pack-card" data-pack="data/packs/TOPIK_Vocabulary.flashcard" data-name="TOPIK Vocabulary" data-category="Korean">
+                        <div class="pack-icon topik-icon">TOPIK</div>
+                        <div class="pack-info">
+                            <h4>TOPIK I & II</h4>
+                            <p>6000+ Vocabulary</p>
+                            <span class="lang-tag">Korean</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

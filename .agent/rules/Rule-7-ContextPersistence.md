@@ -43,52 +43,55 @@ File: `E:\My office\office\tasks.json`
 - `status: "REVIEW"` nếu cần QC kiểm tra
 - Ghi timestamp vào history của task
 
-## 5. Cập nhật LOB Brain (Tầng 4 - BẮT BUỘC TUYỆT ĐỐI)
+## 5. Cập nhật LOB Brain (Tầng 4)
 
-> ⛔ **KHÔNG CÓ NGOẠI LỆ**: Bất kể task nhỏ hay lớn, bất kể có code hay không — Agent PHẢI ghi vào LOB Brain trước khi kết thúc session.
+> Ghi vào brain khi session có **giá trị recall** — không ghi noise.
 
 ### 5a. brain_store — Lưu project context
-Gọi `brain_store` sau MỌI session có làm việc với project:
+
+**Ghi KHI session có:**
+- Thay đổi file / code / config
+- Quyết định kiến trúc hoặc ADR
+- Bug analysis hoặc research có kết quả
+- Hỏi đáp nghiệp vụ/kỹ thuật ≥ 3 turns có kết luận
+
+**BỎ QUA KHI session chỉ có:**
+- 1-2 turns hỏi-đáp đơn giản (hỏi port, hỏi path, hỏi status)
+- Đọc thông tin mà không tạo quyết định hay thay đổi gì
 
 ```
 brain_store(
-  content:     <Tóm tắt những gì đã làm + quyết định + kết quả chính, 3-5 câu>,
+  content:     <Tóm tắt 3-5 câu: việc đã làm + quyết định + kết quả>,
   summary:     <1-2 câu ngắn nhất>,
   essence:     <≤15 từ — tag style>,
   importance:  <1-5>,
   tags:        [tên_project, domain, keyword],
   project:     <tên project>,
   memory_type: "knowledge" | "decision" | "architecture" | "learning",
-  context_log: <Toàn bộ nội dung thảo luận — yêu cầu, phân tích, kết quả, ADR nếu có>
+  context_log: <TÓM TẮT 5-10 dòng: yêu cầu → phân tích → kết quả → file thay đổi. KHÔNG paste toàn bộ conversation.>
 )
 ```
 
-**Ghi khi session có bất kỳ điều sau:**
-- Đọc/hiểu context dự án (dù không code)
-- Hỏi đáp về nghiệp vụ hoặc kỹ thuật ≥ 2 turns
-- Thay đổi file / code / config bất kỳ
-- Quyết định kiến trúc hoặc ADR
-- Bug analysis hoặc research
+> ⚡ `context_log` chỉ ghi TÓM TẮT, không ghi nguyên conversation — tiết kiệm storage + token khi recall.
 
 ### 5b. brain_log_session — Lưu conversation history
-Gọi `brain_log_session` sau MỌI session (không ngoại lệ):
+
+Gọi sau session có nội dung đáng nhớ (cùng tiêu chí với 5a):
 
 ```
 brain_log_session(
-  title:        <Tên session 1 dòng — mô tả rõ việc đã làm>,
+  title:        <Tên session 1 dòng>,
   project:      <tên project>,
   memory_hash:  <hash từ brain_store ở bước 5a nếu có>,
   turns: [
-    { role: "user", content: "<yêu cầu chính>" },
-    { role: "assistant", content: "<tóm tắt việc đã làm + kết quả>" }
+    { role: "user", content: "<yêu cầu chính — 1 dòng>" },
+    { role: "assistant", content: "<kết quả chính — 1-2 dòng>" }
   ]
 )
 ```
 
-> 💡 **Lý do**: Các agent trên máy khác đang đọc brain liên tục (SSE sessions). Nếu không ghi lại, họ sẽ làm việc với context lỗi thời, dẫn đến conflict và mất công.
+> 💡 Các agent khác đang đọc brain qua SSE. Ghi lại để tránh context lỗi thời.
 
 ## ✅ Commit Gate
-Trước khi kết thúc response, Agent phải xác nhận:
-> "✅ Đã cập nhật: [danh sách file đã ghi + brain_store hash + brain_log_session]"
-
-Nếu bỏ sót bước này, context sẽ bị lỗi thời và agent sau sẽ làm việc sai.
+Trước khi kết thúc response, Agent xác nhận:
+> "✅ Đã cập nhật: [danh sách file đã ghi + brain_store hash nếu có]"
